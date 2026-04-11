@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FLUX Playground</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sand-light:  #f5e6c8;
+  --sand:        #e8c98a;
+  --sand-dark:   #c9a85c;
+  --sand-deep:   #a07840;
+  --terra:       #8b4513;
+  --terra-light: #c0622a;
+  --stone:       #d4c4a0;
+  --stone-dark:  #b0a080;
+  --parchment:   #fdf6e3;
+  --parch-dark:  #f0e4c0;
+  --ink:         #3d2b1f;
+  --ink-light:   #6b4c38;
+  --ink-muted:   #9b7a60;
+  --glass-fill:  #c9a85c;
+  --glass-bg:    rgba(232,201,138,0.15);
+  --focus-l:     #8b4513;
+  --focus-r:     #c0622a;
+  --green:       #5a7a3a;
+  --red:         #8b2020;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--parchment);
+  background-image:
+    radial-gradient(ellipse at 20% 0%, rgba(201,168,92,0.2) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 100%, rgba(139,69,19,0.1) 0%, transparent 60%);
+  color: var(--ink);
+  font-family: 'DM Mono', monospace;
+  min-height: 100vh;
+}
+
+/* Subtle texture */
+body::after {
+  content:'';
+  position:fixed; inset:0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events:none; z-index:998;
+}
+
+/* Centered wrapper */
+.wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* Header */
+header {
+  border-bottom: 2px solid var(--sand-dark);
+  padding: 1.2rem 0;
+  margin-bottom: 1.5rem;
+}
+
+header .wrapper {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.logo {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 2rem;
+  color: var(--terra);
+  letter-spacing: 0.15em;
+  line-height: 1;
+}
+
+.logo-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--ink-muted);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  margin-top: 0.3rem;
+}
+
+.by {
+  font-size: 0.68rem;
+  color: var(--ink-muted);
+  text-align: right;
+  line-height: 1.6;
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  padding: 0.45rem 1.1rem;
+  border: 1.5px solid var(--sand-dark);
+  background: var(--parch-dark);
+  color: var(--ink);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.15s;
+  letter-spacing: 0.05em;
+}
+.btn:hover { background: var(--sand); border-color: var(--terra); }
+.btn.primary {
+  background: var(--terra);
+  color: var(--sand-light);
+  border-color: var(--terra);
+  font-weight: 500;
+}
+.btn.primary:hover { background: var(--terra-light); }
+.btn.danger { border-color: var(--red); color: var(--red); }
+.btn.danger:hover { background: var(--red); color: var(--parchment); }
+
+.sep { width: 1px; height: 20px; background: var(--sand-dark); margin: 0 0.3rem; }
+
+.ex-label { font-size: 0.65rem; color: var(--ink-muted); letter-spacing: 0.1em; }
+.ex-btn {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--stone-dark);
+  background: transparent;
+  color: var(--ink-muted);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.15s;
+}
+.ex-btn:hover { border-color: var(--terra); color: var(--terra); background: rgba(139,69,19,0.05); }
+
+/* Main grid */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* Panel */
+.panel {
+  background: var(--parch-dark);
+  border: 1.5px solid var(--sand-dark);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.panel-header {
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--terra);
+  padding: 0.6rem 1rem;
+  background: rgba(201,168,92,0.2);
+  border-bottom: 1px solid var(--sand-dark);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.panel-header span {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--ink-muted);
+  letter-spacing: 0.05em;
+  font-weight: normal;
+  text-transform: none;
+}
+
+/* Editor */
+#editor {
+  width: 100%;
+  height: 320px;
+  background: var(--parchment);
+  color: var(--terra);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.95rem;
+  padding: 1rem;
+  border: none;
+  outline: none;
+  resize: vertical;
+  line-height: 1.8;
+  letter-spacing: 0.08em;
+  caret-color: var(--terra);
+}
+#editor::placeholder { color: var(--stone-dark); font-size: 0.8rem; }
+
+/* Output */
+.output-box {
+  min-height: 60px;
+  max-height: 100px;
+  overflow-y: auto;
+  padding: 0.7rem 1rem;
+  background: var(--parchment);
+  border-top: 1px solid var(--sand-dark);
+  font-size: 0.78rem;
+  line-height: 1.8;
+}
+.out-line { color: var(--green); }
+.out-line.err { color: var(--red); }
+
+/* Glass viz */
+.viz-box {
+  padding: 0.8rem;
+  background: var(--parchment);
+  min-height: 400px;
+  max-height: 500px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+/* Level rows */
+.level-row {
+  display: grid;
+  grid-template-columns: 2rem 1fr 0.4rem 1fr 1rem;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.3rem;
+  border-radius: 3px;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+.level-row.active {
+  background: rgba(139,69,19,0.06);
+  border-color: rgba(139,69,19,0.25);
+}
+
+.lvl-num {
+  font-size: 0.58rem;
+  color: var(--ink-muted);
+  text-align: right;
+}
+.level-row.active .lvl-num { color: var(--terra); font-weight: 500; }
+
+/* Glass chamber */
+.chamber {
+  height: 22px;
+  background: var(--glass-bg);
+  border: 1px solid var(--stone-dark);
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+.chamber.foc-l { border-color: var(--focus-l); background: rgba(139,69,19,0.08); }
+.chamber.foc-r { border-color: var(--focus-r); background: rgba(192,98,42,0.08); }
+
+.ch-fill {
+  position: absolute;
+  left:0; top:0; bottom:0;
+  background: linear-gradient(90deg, rgba(201,168,92,0.7), rgba(201,168,92,0.3));
+  transition: width 0.35s cubic-bezier(0.4,0,0.2,1);
+}
+
+.ch-val {
+  position: relative;
+  z-index:1;
+  font-size: 0.65rem;
+  padding: 0 0.4rem;
+  color: var(--terra);
+  font-weight: 500;
+}
+
+.ch-tag {
+  position: absolute;
+  right: 0.25rem;
+  font-size: 0.5rem;
+  color: var(--stone-dark);
+  z-index:1;
+}
+
+.foc-ind {
+  font-size: 0.6rem;
+  color: var(--terra);
+  text-align: center;
+  opacity: 0;
+}
+.level-row.active .foc-ind { opacity: 1; }
+
+/* Status bar */
+.status {
+  margin-top: 1rem;
+  display: flex;
+  gap: 1.5rem;
+  padding: 0.6rem 1rem;
+  background: var(--parch-dark);
+  border: 1.5px solid var(--sand-dark);
+  border-radius: 4px;
+  font-size: 0.68rem;
+  color: var(--ink-muted);
+  align-items: center;
+  flex-wrap: wrap;
+}
+.st-item { display: flex; gap: 0.4rem; }
+.st-val { color: var(--terra); font-weight: 500; }
+.st-dot { width:7px; height:7px; border-radius:50%; background:var(--green); flex-shrink:0; margin-top:2px; }
+.st-dot.run { background:var(--sand-dark); animation: blink 0.7s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+/* kbd hint */
+.kbd {
+  font-size: 0.6rem;
+  background: var(--stone);
+  border: 1px solid var(--stone-dark);
+  border-radius: 2px;
+  padding: 0.1rem 0.35rem;
+  color: var(--ink-light);
+}
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--sand-dark); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrapper">
+    <div>
+      <div class="logo">FLUX</div>
+      <div class="logo-sub">Logik in Bewegung · Playground</div>
+    </div>
+    <div class="by">By Patrick Klingforth (Rick)<br>Version 0.1</div>
+  </div>
+</header>
+
+<div class="wrapper">
+
+  <div class="toolbar">
+    <button class="btn primary" onclick="runCode()">▶ Ausführen</button>
+    <button class="btn" onclick="stepCode()">⟶ Schritt</button>
+    <button class="btn danger" onclick="resetState()">↺ Reset</button>
+    <kbd class="kbd">Ctrl+Enter</kbd>
+    <div class="sep"></div>
+    <span class="ex-label">Beispiele:</span>
+    <button class="ex-btn" onclick="loadEx('add')">Addition</button>
+    <button class="ex-btn" onclick="loadEx('sub')">Subtraktion</button>
+    <button class="ex-btn" onclick="loadEx('mul')">Multiplikation</button>
+    <button class="ex-btn" onclick="loadEx('if')">IF-ELSE</button>
+  </div>
+
+  <div class="grid">
+
+    <!-- Links: Editor -->
+    <div>
+      <div class="panel">
+        <div class="panel-header">
+          Code
+          <span>.fx</span>
+        </div>
+        <textarea id="editor" spellcheck="false"
+          placeholder="FLUX Code hier eingeben...&#10;&#10;Beispiel:&#10;<5 >3 | <&quot;"></textarea>
+        <div class="output-box" id="output"></div>
+      </div>
+    </div>
+
+    <!-- Rechts: Glass Grid -->
+    <div>
+      <div class="panel">
+        <div class="panel-header">
+          Glass Grid
+          <span id="hdrInfo">L0 · Links</span>
+        </div>
+        <div class="viz-box" id="viz"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Status -->
+  <div class="status">
+    <div class="st-item"><div class="st-dot" id="stDot"></div><span id="stText">bereit</span></div>
+    <div class="st-item">Ebene: <span class="st-val" id="stLvl">0</span></div>
+    <div class="st-item">Fokus: <span class="st-val" id="stFoc">Links</span></div>
+    <div class="st-item">Links: <span class="st-val" id="stL">0</span></div>
+    <div class="st-item">Rechts: <span class="st-val" id="stR">0</span></div>
+  </div>
+
+</div>
+
+<script>
+// ─── FLUX Interpreter ────────────────────────────────────
+
+const MAX_LEVELS = 64;
+// Maximaler Wert für die Füllstandsanzeige (logarithmisch)
+const DISPLAY_MAX = 100;
+
+let grid, lvl, foc, outLines, stepToks, stepIdx;
+
+function initState() {
+  grid = Array.from({length: MAX_LEVELS}, () => [0, 0]);
+  lvl = 0; foc = 0;
+  outLines = [];
+  stepToks = null; stepIdx = 0;
+}
+initState();
+
+function hasColon(toks, i) {
+  let d = 0;
+  while (i < toks.length) {
+    if      (toks[i].t === 'PIPE')  d++;
+    else if (toks[i].t === 'COL')   { if (!d) return true; else d--; }
+    i++;
+  }
+  return false;
+}
+
+function tokenize(src) {
+  const toks = []; let i = 0;
+  while (i < src.length) {
+    const c = src[i];
+    if (c === '<') {
+      i++; let n='';
+      while (i<src.length && src[i]>='0' && src[i]<='9') n+=src[i++];
+      toks.push(n ? {t:'FILL',side:0,amt:+n} : {t:'LEFT'});
+    } else if (c === '>') {
+      i++; let n='';
+      while (i<src.length && src[i]>='0' && src[i]<='9') n+=src[i++];
+      toks.push(n ? {t:'FILL',side:1,amt:+n} : {t:'RIGHT'});
+    } else if (c==='+') { toks.push({t:'UP'});    i++; }
+    else if (c==='-')   { toks.push({t:'DOWN'});  i++; }
+    else if (c==='*')   { toks.push({t:'DROP'});  i++; }
+    else if (c==='~')   { toks.push({t:'REM'});   i++; }
+    else if (c==='!')   { toks.push({t:'FLIP'});  i++; }
+    else if (c==='?')   { toks.push({t:'DBG'});   i++; }
+    else if (c==='"')   { toks.push({t:'PRINT'}); i++; }
+    else if (c==="'")   { toks.push({t:'INPUT'}); i++; }
+    else if (c==='|')   { toks.push({t:'PIPE'});  i++; }
+    else if (c===':')   { toks.push({t:'COL'});   i++; }
+    else i++;
+  }
+  return toks;
+}
+
+function exec(toks, pos) {
+  while (pos < toks.length) {
+    const t = toks[pos];
+    switch(t.t) {
+      case 'LEFT':  foc=0; pos++; break;
+      case 'RIGHT': foc=1; pos++; break;
+      case 'UP':    lvl=Math.min(lvl+1,MAX_LEVELS-1); pos++; break;
+      case 'DOWN':  lvl=Math.max(lvl-1,0); pos++; break;
+      case 'DROP':  grid[lvl][foc]++; pos++; break;
+      case 'REM':   if(grid[lvl][foc]>0) grid[lvl][foc]--; pos++; break;
+      case 'FILL':  grid[lvl][t.side]=t.amt; foc=t.side; pos++; break;
+      case 'FLIP': {
+        let tmp=grid[lvl][0]; grid[lvl][0]=grid[lvl][1]; grid[lvl][1]=tmp;
+        pos++; break;
+      }
+      case 'PRINT': outLines.push(String(grid[lvl][foc])); pos++; break;
+      case 'DBG': {
+        const lo=Math.max(lvl-1,0), hi=Math.min(lvl+1,MAX_LEVELS-1);
+        for(let i=lo;i<=hi;i++) {
+          const m=i===lvl?` ◀ fokus=${foc===0?'L':'R'}`:'';
+          outLines.push(`[L${i}] links=${grid[i][0]}  rechts=${grid[i][1]}${m}`);
+        }
+        pos++; break;
+      }
+      case 'PIPE': {
+        pos++;
+        if (hasColon(toks, pos)) {
+          const l=lvl, f=foc, bs=pos;
+          while (grid[l][f] > 0) {
+            grid[l][f]--;
+            grid[l][1-f]++;
+            pos = exec(toks, bs);
+          }
+          // springe hinter passendes ':'
+          let d=0;
+          while (pos<toks.length) {
+            if      (toks[pos].t==='PIPE') d++;
+            else if (toks[pos].t==='COL')  { if(!d){pos++;break;} else d--; }
+            pos++;
+          }
+        } else {
+          grid[lvl][1-foc]+=grid[lvl][foc];
+          grid[lvl][foc]=0;
+        }
+        break;
+      }
+      case 'COL': return pos+1;
+      default: pos++; break;
+    }
+  }
+  return pos;
+}
+
+// ─── Visualizer ──────────────────────────────────────────
+
+function fillPct(val) {
+  // Logarithmische Skala – 0=0%, 10=50%, 100=75%, 1000=90%
+  if (val <= 0) return 0;
+  return Math.min(Math.log10(val+1) / Math.log10(DISPLAY_MAX+1) * 100, 100);
+}
+
+function renderViz() {
+  const viz = document.getElementById('viz');
+  let maxUsed = 3;
+  for (let i=MAX_LEVELS-1; i>=0; i--) {
+    if (grid[i][0]||grid[i][1]) { maxUsed=Math.max(i+2,3); break; }
+  }
+  maxUsed = Math.max(maxUsed, lvl+2, 4);
+
+  let html='';
+  for (let i=maxUsed-1; i>=0; i--) {
+    const active = i===lvl;
+    const lv=grid[i][0], rv=grid[i][1];
+    const lp=fillPct(lv), rp=fillPct(rv);
+    const lf=active&&foc===0?'foc-l':'';
+    const rf=active&&foc===1?'foc-r':'';
+    const arrow=active?(foc===0?'◀':'▶'):'';
+    html+=`<div class="level-row ${active?'active':''}">
+      <div class="lvl-num">L${i}</div>
+      <div class="chamber ${lf}">
+        <div class="ch-fill" style="width:${lp}%"></div>
+        <div class="ch-val">${lv}</div>
+        <div class="ch-tag">L</div>
+      </div>
+      <div></div>
+      <div class="chamber ${rf}">
+        <div class="ch-fill" style="width:${rp}%"></div>
+        <div class="ch-val">${rv}</div>
+        <div class="ch-tag">R</div>
+      </div>
+      <div class="foc-ind">${arrow}</div>
+    </div>`;
+  }
+  viz.innerHTML = html;
+
+  document.getElementById('stLvl').textContent = lvl;
+  document.getElementById('stFoc').textContent = foc===0?'Links':'Rechts';
+  document.getElementById('stL').textContent   = grid[lvl][0];
+  document.getElementById('stR').textContent   = grid[lvl][1];
+  document.getElementById('hdrInfo').textContent = `L${lvl} · ${foc===0?'Links':'Rechts'}`;
+}
+
+function renderOut() {
+  const box = document.getElementById('output');
+  box.innerHTML = outLines.map(l =>
+    `<div class="out-line ${l.startsWith('FEHLER')?'err':''}">${l}</div>`
+  ).join('');
+}
+
+// ─── Controls ─────────────────────────────────────────────
+
+function setStatus(txt, run=false) {
+  document.getElementById('stText').textContent = txt;
+  document.getElementById('stDot').className = 'st-dot'+(run?' run':'');
+}
+
+function runCode() {
+  initState();
+  setStatus('läuft...', true);
+  try {
+    exec(tokenize(document.getElementById('editor').value), 0);
+    setStatus('fertig ✓');
+  } catch(e) {
+    outLines.push('FEHLER: '+e.message);
+    setStatus('fehler ✗');
+  }
+  renderViz(); renderOut();
+}
+
+function stepCode() {
+  if (!stepToks) {
+    initState();
+    stepToks = tokenize(document.getElementById('editor').value);
+    stepIdx = 0;
+    setStatus('schritt-modus');
+  }
+  if (stepIdx >= stepToks.length) {
+    setStatus('fertig ✓'); stepToks=null; return;
+  }
+  stepIdx = exec(stepToks, stepIdx);
+  if (stepIdx >= stepToks.length) setStatus('fertig ✓');
+  renderViz(); renderOut();
+}
+
+function resetState() {
+  initState(); setStatus('bereit');
+  renderViz();
+  document.getElementById('output').innerHTML='';
+}
+
+// ─── Beispiele ─────────────────────────────────────────────
+
+const examples = {
+  add: `Addition 5 + 3 = 8\n<5 >3 | <"`,
+  sub: `Subtraktion 10 - 3 = 7\n>3 + <10 - > | < + ~ - > : + <"`,
+  mul: `Multiplikation 6 x 8 = 48\n<6 + <8 - | + | + * - : ! - : + ?`,
+};
+
+function loadEx(name) {
+  initState(); stepToks=null;
+  document.getElementById('editor').value = examples[name]||'';
+  setStatus('bereit'); renderViz();
+  document.getElementById('output').innerHTML='';
+}
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey||e.metaKey)&&e.key==='Enter') { e.preventDefault(); runCode(); }
+});
+
+renderViz();
+</script>
+</body>
+</html>
