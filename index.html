@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FLUX Playground</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sand-light:  #f5e6c8;
+  --sand:        #e8c98a;
+  --sand-dark:   #c9a85c;
+  --sand-deep:   #a07840;
+  --terra:       #8b4513;
+  --terra-light: #c0622a;
+  --stone:       #d4c4a0;
+  --stone-dark:  #b0a080;
+  --parchment:   #fdf6e3;
+  --parch-dark:  #f0e4c0;
+  --ink:         #3d2b1f;
+  --ink-light:   #6b4c38;
+  --ink-muted:   #9b7a60;
+  --glass-bg:    rgba(232,201,138,0.15);
+  --focus-l:     #8b4513;
+  --focus-r:     #c0622a;
+  --green:       #5a7a3a;
+  --red:         #8b2020;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--parchment);
+  background-image:
+    radial-gradient(ellipse at 20% 0%, rgba(201,168,92,0.2) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 100%, rgba(139,69,19,0.1) 0%, transparent 60%);
+  color: var(--ink);
+  font-family: 'DM Mono', monospace;
+  min-height: 100vh;
+}
+
+body::after {
+  content:''; position:fixed; inset:0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events:none; z-index:998;
+}
+
+.wrapper { max-width: 1100px; margin: 0 auto; padding: 0 1rem; }
+
+header {
+  border-bottom: 2px solid var(--sand-dark);
+  padding: 1rem 0;
+  margin-bottom: 1.2rem;
+}
+header .wrapper { display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:0.5rem; }
+
+.logo { font-family:'Cinzel',serif; font-weight:700; font-size:1.8rem; color:var(--terra); letter-spacing:0.15em; line-height:1; }
+.logo-sub { font-family:'DM Mono',monospace; font-size:0.6rem; color:var(--ink-muted); letter-spacing:0.25em; text-transform:uppercase; margin-top:0.2rem; }
+.by { font-size:0.62rem; color:var(--ink-muted); text-align:right; line-height:1.6; }
+
+/* Toolbar */
+.toolbar {
+  display:flex; gap:0.4rem; align-items:center;
+  margin-bottom:1rem; flex-wrap:wrap;
+}
+.btn {
+  font-family:'DM Mono',monospace; font-size:0.7rem;
+  padding:0.4rem 0.9rem;
+  border:1.5px solid var(--sand-dark); background:var(--parch-dark);
+  color:var(--ink); cursor:pointer; border-radius:2px; transition:all 0.15s;
+}
+.btn:hover { background:var(--sand); border-color:var(--terra); }
+.btn.primary { background:var(--terra); color:var(--sand-light); border-color:var(--terra); font-weight:500; }
+.btn.primary:hover { background:var(--terra-light); }
+.btn.danger { border-color:var(--red); color:var(--red); }
+.btn.danger:hover { background:var(--red); color:var(--parchment); }
+.btn.active { background:var(--sand-dark); color:var(--ink); border-color:var(--terra); }
+
+.sep { width:1px; height:18px; background:var(--sand-dark); margin:0 0.2rem; }
+.ex-label { font-size:0.62rem; color:var(--ink-muted); white-space:nowrap; }
+.ex-btn {
+  font-family:'DM Mono',monospace; font-size:0.62rem;
+  padding:0.3rem 0.6rem; border:1px solid var(--stone-dark);
+  background:transparent; color:var(--ink-muted); cursor:pointer; border-radius:2px; transition:all 0.15s;
+}
+.ex-btn:hover { border-color:var(--terra); color:var(--terra); background:rgba(139,69,19,0.05); }
+
+/* Grid */
+.grid {
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:1rem;
+  align-items:start;
+}
+
+@media (max-width: 700px) {
+  .grid { grid-template-columns: 1fr; }
+  .logo { font-size:1.3rem; }
+  .by { display:none; }
+  .toolbar { gap:0.3rem; }
+  .btn { font-size:0.65rem; padding:0.4rem 0.7rem; }
+}
+
+.panel {
+  background:var(--parch-dark);
+  border:1.5px solid var(--sand-dark);
+  border-radius:4px; overflow:hidden;
+}
+.panel-header {
+  font-family:'Cinzel',serif; font-size:0.65rem;
+  letter-spacing:0.2em; text-transform:uppercase;
+  color:var(--terra); padding:0.5rem 0.8rem;
+  background:rgba(201,168,92,0.2);
+  border-bottom:1px solid var(--sand-dark);
+  display:flex; justify-content:space-between; align-items:center;
+}
+.panel-header span { font-family:'DM Mono',monospace; font-size:0.58rem; color:var(--ink-muted); font-weight:normal; text-transform:none; letter-spacing:0.03em; }
+
+/* Editor */
+#editor {
+  width:100%; height:240px;
+  background:var(--parchment); color:var(--terra);
+  font-family:'DM Mono',monospace; font-size:0.9rem;
+  padding:0.8rem; border:none; outline:none; resize:vertical;
+  line-height:1.8; letter-spacing:0.06em; caret-color:var(--terra);
+}
+#editor::placeholder { color:var(--stone-dark); font-size:0.78rem; }
+
+/* Step highlight */
+#editor.stepping { background: #fef9ed; }
+
+.output-box {
+  min-height:50px; max-height:80px; overflow-y:auto;
+  padding:0.5rem 0.8rem; background:var(--parchment);
+  border-top:1px solid var(--sand-dark);
+  font-size:0.75rem; line-height:1.8;
+}
+.out-line { color:var(--green); }
+.out-line.err { color:var(--red); }
+
+/* Viz */
+.viz-box {
+  padding:0.6rem; background:var(--parchment);
+  min-height:280px; max-height:360px; overflow-y:auto;
+  display:flex; flex-direction:column; gap:0.25rem;
+}
+
+.level-row {
+  display:grid;
+  grid-template-columns: 2rem 1fr 0.3rem 1fr 1rem;
+  align-items:center; gap:0.3rem;
+  padding:0.2rem 0.25rem; border-radius:3px;
+  border:1px solid transparent; transition:all 0.2s;
+}
+.level-row.active { background:rgba(139,69,19,0.06); border-color:rgba(139,69,19,0.25); }
+
+.lvl-num { font-size:0.55rem; color:var(--ink-muted); text-align:right; }
+.level-row.active .lvl-num { color:var(--terra); font-weight:500; }
+
+.chamber {
+  height:20px; background:var(--glass-bg);
+  border:1px solid var(--stone-dark); border-radius:2px;
+  position:relative; overflow:hidden; display:flex; align-items:center;
+}
+.chamber.foc-l { border-color:var(--focus-l); background:rgba(139,69,19,0.08); }
+.chamber.foc-r { border-color:var(--focus-r); background:rgba(192,98,42,0.08); }
+
+.ch-fill {
+  position:absolute; left:0; top:0; bottom:0;
+  background:linear-gradient(90deg, rgba(201,168,92,0.7), rgba(201,168,92,0.3));
+  transition:width 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.ch-val { position:relative; z-index:1; font-size:0.62rem; padding:0 0.35rem; color:var(--terra); font-weight:500; }
+.ch-tag { position:absolute; right:0.2rem; font-size:0.48rem; color:var(--stone-dark); z-index:1; }
+.foc-ind { font-size:0.55rem; color:var(--terra); text-align:center; opacity:0; }
+.level-row.active .foc-ind { opacity:1; }
+
+/* Status */
+.status {
+  margin-top:0.8rem;
+  display:flex; gap:1rem; padding:0.5rem 0.8rem;
+  background:var(--parch-dark); border:1.5px solid var(--sand-dark);
+  border-radius:4px; font-size:0.65rem; color:var(--ink-muted);
+  align-items:center; flex-wrap:wrap;
+}
+.st-item { display:flex; gap:0.3rem; }
+.st-val { color:var(--terra); font-weight:500; }
+.st-dot { width:6px; height:6px; border-radius:50%; background:var(--green); flex-shrink:0; margin-top:2px; }
+.st-dot.run { background:var(--sand-dark); animation:blink 0.7s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+/* ─── Syntax Referenz ─────────────────────────────────── */
+.ref {
+  margin-top:1.2rem;
+  background:var(--parch-dark);
+  border:1.5px solid var(--sand-dark);
+  border-radius:4px; overflow:hidden;
+}
+.ref-header {
+  font-family:'Cinzel',serif; font-size:0.65rem;
+  letter-spacing:0.2em; text-transform:uppercase;
+  color:var(--terra); padding:0.5rem 1rem;
+  background:rgba(201,168,92,0.2);
+  border-bottom:1px solid var(--sand-dark);
+  cursor:pointer; display:flex; justify-content:space-between; align-items:center;
+  user-select:none;
+}
+.ref-header:hover { background:rgba(201,168,92,0.3); }
+.ref-toggle { font-size:0.7rem; color:var(--ink-muted); }
+
+.ref-body {
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap:0; padding:0;
+  overflow:hidden; max-height:0;
+  transition:max-height 0.3s ease;
+}
+.ref-body.open { max-height:1000px; padding:0.8rem; gap:1rem; }
+
+.ref-section h4 {
+  font-family:'Cinzel',serif; font-size:0.6rem;
+  letter-spacing:0.15em; text-transform:uppercase;
+  color:var(--terra); margin-bottom:0.5rem;
+  padding-bottom:0.25rem; border-bottom:1px solid var(--sand-dark);
+}
+
+.ref-table { width:100%; border-collapse:collapse; }
+.ref-table tr { border-bottom:1px solid rgba(176,160,128,0.3); }
+.ref-table tr:last-child { border-bottom:none; }
+.ref-table td { padding:0.25rem 0.3rem; font-size:0.68rem; vertical-align:top; }
+.ref-table td:first-child {
+  font-weight:500; color:var(--terra);
+  width:2.5rem; font-size:0.75rem; letter-spacing:0.05em;
+}
+.ref-table td:last-child { color:var(--ink-light); }
+
+.ref-note {
+  grid-column: 1 / -1;
+  font-size:0.65rem; color:var(--ink-muted);
+  padding:0.5rem 0.8rem;
+  background:rgba(201,168,92,0.1);
+  border-radius:3px; border:1px solid var(--sand-dark);
+  line-height:1.7;
+}
+.ref-note code {
+  color:var(--terra); background:rgba(139,69,19,0.1);
+  padding:0.1rem 0.3rem; border-radius:2px; font-size:0.7rem;
+}
+
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--sand-dark); border-radius:2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrapper">
+    <div>
+      <div class="logo">FLUX</div>
+      <div class="logo-sub">Logik in Bewegung · Playground</div>
+    </div>
+    <div class="by">By Patrick Klingforth (Rick)<br>Version 0.1</div>
+  </div>
+</header>
+
+<div class="wrapper">
+
+  <div class="toolbar">
+    <button class="btn primary" onclick="runCode()">▶ Run</button>
+    <button class="btn" id="stepBtn" onclick="stepCode()">⟶ Step</button>
+    <button class="btn danger" onclick="resetState()">↺ Reset</button>
+    <div class="sep"></div>
+    <span class="ex-label">Beispiele:</span>
+    <button class="ex-btn" onclick="loadEx('add')">Addition</button>
+    <button class="ex-btn" onclick="loadEx('sub')">Subtraktion</button>
+    <button class="ex-btn" onclick="loadEx('mul')">Multiplikation</button>
+    <button class="ex-btn" onclick="loadEx('if')">IF-ELSE</button>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="panel">
+        <div class="panel-header">
+          Code
+          <span id="stepInfo">Ctrl+Enter = Run</span>
+        </div>
+        <textarea id="editor" spellcheck="false"
+          placeholder="FLUX Code hier eingeben...&#10;&#10;Beispiel:&#10;<5 >3 | <&quot;"></textarea>
+        <div class="output-box" id="output"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel">
+        <div class="panel-header">
+          Glass Grid
+          <span id="hdrInfo">L0 · Links</span>
+        </div>
+        <div class="viz-box" id="viz"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="status">
+    <div class="st-item"><div class="st-dot" id="stDot"></div><span id="stText">bereit</span></div>
+    <div class="st-item">Ebene: <span class="st-val" id="stLvl">0</span></div>
+    <div class="st-item">Fokus: <span class="st-val" id="stFoc">Links</span></div>
+    <div class="st-item">Links: <span class="st-val" id="stL">0</span></div>
+    <div class="st-item">Rechts: <span class="st-val" id="stR">0</span></div>
+  </div>
+
+  <!-- Syntax Referenz -->
+  <div class="ref">
+    <div class="ref-header" onclick="toggleRef()">
+      Syntax Referenz
+      <span class="ref-toggle" id="refToggle">▼ aufklappen</span>
+    </div>
+    <div class="ref-body" id="refBody">
+
+      <div class="ref-section">
+        <h4>Orientierung</h4>
+        <table class="ref-table">
+          <tr><td>&lt;</td><td>Fokus auf linke Kammer</td></tr>
+          <tr><td>&gt;</td><td>Fokus auf rechte Kammer</td></tr>
+          <tr><td>+</td><td>Eine Ebene nach oben</td></tr>
+          <tr><td>-</td><td>Eine Ebene nach unten</td></tr>
+        </table>
+      </div>
+
+      <div class="ref-section">
+        <h4>Sand & Kammern</h4>
+        <table class="ref-table">
+          <tr><td>*</td><td>Ein Korn erzeugen (Einlass)</td></tr>
+          <tr><td>~</td><td>Ein Korn entfernen (Auslass)</td></tr>
+          <tr><td>&lt;N</td><td>Linke Kammer auf N setzen</td></tr>
+          <tr><td>&gt;N</td><td>Rechte Kammer auf N setzen</td></tr>
+          <tr><td>!</td><td>Links ↔ Rechts tauschen</td></tr>
+        </table>
+      </div>
+
+      <div class="ref-section">
+        <h4>Schleuse</h4>
+        <table class="ref-table">
+          <tr><td>|</td><td>Alles von Fokus zur anderen Seite schütten</td></tr>
+          <tr><td>| … :</td><td>Schleife: ein Korn pro Runde, Code im Fluss</td></tr>
+        </table>
+      </div>
+
+      <div class="ref-section">
+        <h4>Ein- & Ausgabe</h4>
+        <table class="ref-table">
+          <tr><td>"</td><td>Fokus-Wert ausgeben</td></tr>
+          <tr><td>'</td><td>Zahl einlesen (öffnet Eingabefenster)</td></tr>
+          <tr><td>?</td><td>Debug: 3 Ebenen anzeigen</td></tr>
+        </table>
+      </div>
+
+      <div class="ref-note">
+        <strong>Kommentare:</strong> Alles was kein FLUX-Symbol ist wird ignoriert.<br>
+        <strong>IF-ELSE:</strong> <code>&gt;1 &lt; | &gt;0 IF-CODE : &gt; | ELSE-CODE :</code><br>
+        <strong>Addition:</strong> <code>&lt;5 &gt;3 | &lt;"</code> &nbsp;·&nbsp;
+        <strong>Subtraktion:</strong> <code>&gt;3 + &lt;10 - &gt; | &lt; + ~ - &gt; : + &lt;"</code>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /wrapper -->
+
+<script>
+// ─── FLUX Interpreter ────────────────────────────────────
+
+const MAX_LEVELS = 64;
+
+let grid, lvl, foc, outLines;
+// Step-Modus
+let stepToks = null, stepStack = null;
+
+function initState() {
+  grid = Array.from({length: MAX_LEVELS}, () => [0, 0]);
+  lvl = 0; foc = 0;
+  outLines = [];
+  stepToks = null;
+  stepStack = null;
+}
+initState();
+
+function hasColon(toks, i) {
+  let d = 0;
+  while (i < toks.length) {
+    if      (toks[i].t === 'PIPE') d++;
+    else if (toks[i].t === 'COL')  { if (!d) return true; else d--; }
+    i++;
+  }
+  return false;
+}
+
+function tokenize(src) {
+  const toks = []; let i = 0;
+  while (i < src.length) {
+    const c = src[i];
+    if (c==='<') {
+      i++; let n='';
+      while (i<src.length && src[i]>='0' && src[i]<='9') n+=src[i++];
+      toks.push(n?{t:'FILL',side:0,amt:+n}:{t:'LEFT'});
+    } else if (c==='>') {
+      i++; let n='';
+      while (i<src.length && src[i]>='0' && src[i]<='9') n+=src[i++];
+      toks.push(n?{t:'FILL',side:1,amt:+n}:{t:'RIGHT'});
+    }
+    else if (c==='+') { toks.push({t:'UP'});    i++; }
+    else if (c==='-') { toks.push({t:'DOWN'});  i++; }
+    else if (c==='*') { toks.push({t:'DROP'});  i++; }
+    else if (c==='~') { toks.push({t:'REM'});   i++; }
+    else if (c==='!') { toks.push({t:'FLIP'});  i++; }
+    else if (c==='?') { toks.push({t:'DBG'});   i++; }
+    else if (c==='"') { toks.push({t:'PRINT'}); i++; }
+    else if (c==="'") { toks.push({t:'INPUT'}); i++; }
+    else if (c==='|') { toks.push({t:'PIPE'});  i++; }
+    else if (c===':') { toks.push({t:'COL'});   i++; }
+    else i++;
+  }
+  return toks;
+}
+
+// Vollständiger Executor (für Run)
+function exec(toks, pos) {
+  while (pos < toks.length) {
+    const t = toks[pos];
+    switch(t.t) {
+      case 'LEFT':  foc=0; pos++; break;
+      case 'RIGHT': foc=1; pos++; break;
+      case 'UP':    lvl=Math.min(lvl+1,MAX_LEVELS-1); pos++; break;
+      case 'DOWN':  lvl=Math.max(lvl-1,0); pos++; break;
+      case 'DROP':  grid[lvl][foc]++; pos++; break;
+      case 'REM':   if(grid[lvl][foc]>0) grid[lvl][foc]--; pos++; break;
+      case 'FILL':  grid[lvl][t.side]=t.amt; foc=t.side; pos++; break;
+      case 'FLIP': { let tmp=grid[lvl][0]; grid[lvl][0]=grid[lvl][1]; grid[lvl][1]=tmp; pos++; break; }
+      case 'PRINT': outLines.push(String(grid[lvl][foc])); pos++; break;
+      case 'INPUT': {
+        const val = window.prompt('FLUX Eingabe – Zahl eingeben:');
+        const n = parseInt(val);
+        if (!isNaN(n)) grid[lvl][foc] = n;
+        outLines.push(`← Eingabe: ${isNaN(n)?0:n}`);
+        pos++; break;
+      }
+      case 'DBG': {
+        const lo=Math.max(lvl-1,0), hi=Math.min(lvl+1,MAX_LEVELS-1);
+        for(let i=lo;i<=hi;i++) {
+          const m=i===lvl?` ◀ fokus=${foc===0?'L':'R'}`:'';
+          outLines.push(`[L${i}] L=${grid[i][0]}  R=${grid[i][1]}${m}`);
+        }
+        pos++; break;
+      }
+      case 'PIPE': {
+        pos++;
+        if (hasColon(toks,pos)) {
+          const l=lvl,f=foc,bs=pos;
+          while (grid[l][f]>0) {
+            grid[l][f]--; grid[l][1-f]++;
+            pos=exec(toks,bs);
+          }
+          let d=0;
+          while(pos<toks.length){
+            if(toks[pos].t==='PIPE') d++;
+            else if(toks[pos].t==='COL'){if(!d){pos++;break;}else d--;}
+            pos++;
+          }
+        } else { grid[lvl][1-foc]+=grid[lvl][foc]; grid[lvl][foc]=0; }
+        break;
+      }
+      case 'COL': return pos+1;
+      default: pos++; break;
+    }
+  }
+  return pos;
+}
+
+// Step-Executor: führt ein Token aus, gibt neuen Index zurück
+function execOne(toks, pos) {
+  if (pos >= toks.length) return pos;
+  const t = toks[pos];
+  switch(t.t) {
+    case 'LEFT':  foc=0; return pos+1;
+    case 'RIGHT': foc=1; return pos+1;
+    case 'UP':    lvl=Math.min(lvl+1,MAX_LEVELS-1); return pos+1;
+    case 'DOWN':  lvl=Math.max(lvl-1,0); return pos+1;
+    case 'DROP':  grid[lvl][foc]++; return pos+1;
+    case 'REM':   if(grid[lvl][foc]>0) grid[lvl][foc]--; return pos+1;
+    case 'FILL':  grid[lvl][t.side]=t.amt; foc=t.side; return pos+1;
+    case 'FLIP': { let tmp=grid[lvl][0]; grid[lvl][0]=grid[lvl][1]; grid[lvl][1]=tmp; return pos+1; }
+    case 'PRINT': outLines.push(String(grid[lvl][foc])); return pos+1;
+    case 'INPUT': {
+      const val = window.prompt('FLUX Eingabe – Zahl eingeben:');
+      const n = parseInt(val);
+      if (!isNaN(n)) grid[lvl][foc] = n;
+      outLines.push(`← Eingabe: ${isNaN(n)?0:n}`);
+      return pos+1;
+    }
+    case 'DBG': {
+      const lo=Math.max(lvl-1,0),hi=Math.min(lvl+1,MAX_LEVELS-1);
+      for(let i=lo;i<=hi;i++){
+        const m=i===lvl?` ◀ fokus=${foc===0?'L':'R'}`:'';
+        outLines.push(`[L${i}] L=${grid[i][0]}  R=${grid[i][1]}${m}`);
+      }
+      return pos+1;
+    }
+    case 'PIPE': {
+      // Im Step-Modus: führe die gesamte Schleife auf einmal aus
+      return exec(toks, pos);
+    }
+    case 'COL': return pos+1;
+    default: return pos+1;
+  }
+}
+
+// ─── Visualizer ──────────────────────────────────────────
+
+function fillPct(val) {
+  if (val<=0) return 0;
+  return Math.min(Math.log10(val+1)/Math.log10(101)*100, 100);
+}
+
+function renderViz() {
+  const viz = document.getElementById('viz');
+  let maxUsed=3;
+  for(let i=MAX_LEVELS-1;i>=0;i--){
+    if(grid[i][0]||grid[i][1]){maxUsed=Math.max(i+2,3);break;}
+  }
+  maxUsed=Math.max(maxUsed,lvl+2,4);
+
+  let html='';
+  for(let i=maxUsed-1;i>=0;i--){
+    const active=i===lvl;
+    const lv=grid[i][0],rv=grid[i][1];
+    const lp=fillPct(lv),rp=fillPct(rv);
+    const lf=active&&foc===0?'foc-l':'';
+    const rf=active&&foc===1?'foc-r':'';
+    const arrow=active?(foc===0?'◀':'▶'):'';
+    html+=`<div class="level-row ${active?'active':''}">
+      <div class="lvl-num">L${i}</div>
+      <div class="chamber ${lf}">
+        <div class="ch-fill" style="width:${lp}%"></div>
+        <div class="ch-val">${lv}</div>
+        <div class="ch-tag">L</div>
+      </div>
+      <div></div>
+      <div class="chamber ${rf}">
+        <div class="ch-fill" style="width:${rp}%"></div>
+        <div class="ch-val">${rv}</div>
+        <div class="ch-tag">R</div>
+      </div>
+      <div class="foc-ind">${arrow}</div>
+    </div>`;
+  }
+  viz.innerHTML=html;
+
+  document.getElementById('stLvl').textContent=lvl;
+  document.getElementById('stFoc').textContent=foc===0?'Links':'Rechts';
+  document.getElementById('stL').textContent=grid[lvl][0];
+  document.getElementById('stR').textContent=grid[lvl][1];
+  document.getElementById('hdrInfo').textContent=`L${lvl} · ${foc===0?'Links':'Rechts'}`;
+}
+
+function renderOut() {
+  const box=document.getElementById('output');
+  box.innerHTML=outLines.map(l=>
+    `<div class="out-line ${l.startsWith('FEHLER')?'err':''}">${l}</div>`
+  ).join('');
+  box.scrollTop=box.scrollHeight;
+}
+
+// ─── Controls ─────────────────────────────────────────────
+
+function setStatus(txt,run=false) {
+  document.getElementById('stText').textContent=txt;
+  document.getElementById('stDot').className='st-dot'+(run?' run':'');
+}
+
+function runCode() {
+  // Step-Modus beenden falls aktiv
+  stepToks=null;
+  document.getElementById('stepBtn').classList.remove('active');
+  document.getElementById('stepInfo').textContent='Ctrl+Enter = Run';
+  document.getElementById('editor').classList.remove('stepping');
+
+  initState();
+  setStatus('läuft...',true);
+  try {
+    exec(tokenize(document.getElementById('editor').value),0);
+    setStatus('fertig ✓');
+  } catch(e) {
+    outLines.push('FEHLER: '+e.message);
+    setStatus('fehler ✗');
+  }
+  renderViz(); renderOut();
+}
+
+let stepPos=0;
+function stepCode() {
+  const btn=document.getElementById('stepBtn');
+  const ed=document.getElementById('editor');
+
+  if (!stepToks) {
+    // Step-Modus starten
+    initState();
+    stepToks=tokenize(ed.value);
+    stepPos=0;
+    btn.classList.add('active');
+    ed.classList.add('stepping');
+    setStatus('schritt 1 von '+stepToks.length);
+    renderViz(); renderOut();
+    return;
+  }
+
+  if (stepPos >= stepToks.length) {
+    setStatus('fertig ✓');
+    stepToks=null;
+    btn.classList.remove('active');
+    ed.classList.remove('stepping');
+    document.getElementById('stepInfo').textContent='Ctrl+Enter = Run';
+    return;
+  }
+
+  stepPos=execOne(stepToks, stepPos);
+  const remaining=stepToks.length-stepPos;
+  if (remaining<=0) {
+    setStatus('fertig ✓');
+    document.getElementById('stepInfo').textContent='fertig!';
+  } else {
+    setStatus(`schritt ${stepPos} von ${stepToks.length}`);
+    document.getElementById('stepInfo').textContent=`token ${stepPos}/${stepToks.length}`;
+  }
+  renderViz(); renderOut();
+}
+
+function resetState() {
+  initState(); stepToks=null;
+  document.getElementById('stepBtn').classList.remove('active');
+  document.getElementById('editor').classList.remove('stepping');
+  document.getElementById('stepInfo').textContent='Ctrl+Enter = Run';
+  setStatus('bereit');
+  renderViz();
+  document.getElementById('output').innerHTML='';
+}
+
+// ─── Beispiele ─────────────────────────────────────────────
+
+const examples = {
+  add: `Addition: 5 + 3 = 8\n<5 >3 | <"`,
+  sub: `Subtraktion: 10 - 3 = 7\n>3 + <10 - > | < + ~ - > : + <"`,
+  mul: `Multiplikation: 6 x 8 = 48\n<6 + <8 - | + | + * - : ! - : + ?`,
+  if:  `IF-ELSE: wenn links Sand, dann L1 sonst L2\n\n<5\n>1 < | >0 + * - : > | + + * - - :`,
+};
+
+function loadEx(name) {
+  resetState();
+  document.getElementById('editor').value=examples[name]||'';
+}
+
+// ─── Syntax Referenz Toggle ────────────────────────────────
+
+let refOpen=false;
+function toggleRef() {
+  refOpen=!refOpen;
+  document.getElementById('refBody').classList.toggle('open',refOpen);
+  document.getElementById('refToggle').textContent=refOpen?'▲ zuklappen':'▼ aufklappen';
+}
+
+// Keyboard
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();runCode();}
+});
+
+renderViz();
+</script>
+</body>
+</html>
