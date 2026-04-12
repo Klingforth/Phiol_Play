@@ -363,15 +363,16 @@ Beispiel:
           <tr><td>'</td><td>Zahl einlesen (öffnet Eingabefenster)</td></tr>
           <tr><td>?</td><td>Debug: 3 Ebenen anzeigen</td></tr>
           <tr><td>~</td><td>Korn entfernen – Flag AN wenn Kammer danach leer</td></tr>
-          <tr><td>&lt;°</td><td>IF: führe Code aus wenn linke Flag AN</td></tr>
-          <tr><td>&gt;°</td><td>IF: führe Code aus wenn rechte Flag AN</td></tr>
+          <tr><td>&lt;°</td><td>IF: führe Code aus wenn linke Flag AN – schließen mit <code>;</code></td></tr>
+          <tr><td>&gt;°</td><td>IF: führe Code aus wenn rechte Flag AN – schließen mit <code>;</code></td></tr>
+          <tr><td>;</td><td>IF-Block schließen (Gegenstück zu °)</td></tr>
         </table>
       </div>
 
       <div class="ref-note">
         <strong>Kommentare:</strong> Alles was kein FLUX-Symbol ist wird ignoriert.<br>
         <strong>Flag-Regel:</strong> <code>~</code> setzt Flag AN wenn Kammer danach leer. <code>*</code> <code>&lt;N</code> <code>&gt;N</code> <code>|</code> <code>!</code> setzen Flag AUS.<br>
-        <strong>IF mit Flag:</strong> <code>&lt;3 ~ ~ ~ &lt;° " :</code> → gibt Wert aus wenn Kammer leer<br>
+        <strong>IF mit Flag:</strong> <code>&lt;3 ~ ~ ~ &lt;° " ;</code> → gibt Wert aus wenn Kammer leer<br>
         <strong>IF-ELSE:</strong> <code>&gt;1 &lt; | &gt;0 IF-CODE : &gt; | ELSE-CODE :</code><br>
         <strong>Pointer:</strong> <code>+ &lt;25 - &lt;1L "</code> → speichert 25 auf L1, liest es zurück<br>
         <strong>Addition:</strong> <code>&lt;5 &gt;3 | &lt;"</code> &nbsp;·&nbsp;
@@ -449,11 +450,8 @@ function tokenize(src) {
     else if (c==="'") { toks.push({t:'INPUT'}); i++; }
     else if (c==='|') { toks.push({t:'PIPE'});  i++; }
     else if (c===':') { toks.push({t:'COL'});   i++; }
-    else if (c==='°') {
-      // ° nach < oder > wurde schon als FLAG_CHECK gemerkt
-      // Hier standalone ° – ignorieren
-      i++;
-    }
+    else if (c===';') { toks.push({t:'SEMI'});  i++; }  // IF-Block schließen
+    else if (c==='°') { i++; }  // standalone ° ignorieren
     else i++;
   }
   return toks;
@@ -488,24 +486,22 @@ function exec(toks, pos) {
       }
       case 'PRINT': outLines.push(String(grid[lvl][foc])); pos++; break;
       case 'FLAGCHECK': {
-        // <° oder >° – prüfe Flag der Seite
-        // Syntax: <° CODE : → führe CODE aus wenn Flag AN, sonst überspringe bis ':'
         pos++;
         if (flags[lvl][t.side]) {
-          // Flag AN → Code ausführen bis ':'
-          flags[lvl][t.side] = false;  // Flag nach Abfrage löschen
-          pos = exec(toks, pos);
+          flags[lvl][t.side] = false;
+          pos = exec(toks, pos);  // läuft bis SEMI
         } else {
-          // Flag AUS → überspringe bis passendes ':'
+          // Flag AUS → überspringe bis passendes ';'
           let d=0;
           while(pos<toks.length){
-            if(toks[pos].t==='PIPE') d++;
-            else if(toks[pos].t==='COL'){if(!d){pos++;break;}else d--;}
+            if(toks[pos].t==='FLAGCHECK') d++;
+            else if(toks[pos].t==='SEMI'){if(!d){pos++;break;}else d--;}
             pos++;
           }
         }
         break;
       }
+      case 'SEMI': return pos+1;  // IF-Block Ende
       case 'INPUT': {
         const val = window.prompt('FLUX Eingabe – Zahl eingeben:');
         const n = parseInt(val);
@@ -573,6 +569,7 @@ function execOne(toks, pos) {
       }
       return pos+1;
     case 'FLAGCHECK': return exec(toks, pos);
+    case 'SEMI': return pos+1;
     case 'FILL':
       grid[lvl][t.side] = t.ref ? grid[t.amt][t.rl] : t.amt;
       flags[lvl][t.side]=false;
@@ -747,7 +744,7 @@ const examples = {
   mul: `Multiplikation: 6 x 8 = 48\n<6 + <8 - | + | + * - : ! - : + ?`,
   if:  `IF-ELSE: wenn links Sand, dann L1 sonst L2\n\n<5\n>1 < | >0 + * - : > | + + * - - :`,
   ptr: `Pointer - Variablen:\nSpeichere 3 Werte und lese sie wieder\n\n+ <25\n+ <42\n+ <99\n- - -\n<1L "\n<2L "\n<3L "`,
-  flag: `Flag System Test:\n~ setzt Flag wenn Kammer leer\n<° CODE : fuehrt aus wenn Flag AN\n\n<3 ~ ~ ~ <° " :`,
+  flag: `Flag System Test:\n~ setzt Flag wenn Kammer leer\n<° CODE ; fuehrt aus wenn Flag AN\n\n<3 ~ ~ ~ <° " ;`,
 };
 
 function loadEx(name) {
