@@ -398,7 +398,7 @@ function initState() {
   outLines = [];
   stepToks = null;
   stepStack = null;
-  flags = [false, false];  // flags[0]=links, flags[1]=rechts
+  flags = Array.from({length: MAX_LEVELS}, () => [false, false]);  // flags[ebene][seite]
 }
 initState();
 
@@ -468,22 +468,22 @@ function exec(toks, pos) {
       case 'RIGHT': foc=1; pos++; break;
       case 'UP':    lvl=Math.min(lvl+1,MAX_LEVELS-1); pos++; break;
       case 'DOWN':  lvl=Math.max(lvl-1,0); pos++; break;
-      case 'DROP':  grid[lvl][foc]++; flags[foc]=false; pos++; break;
+      case 'DROP':  grid[lvl][foc]++; flags[lvl][foc]=false; pos++; break;
       case 'REM':
         if (grid[lvl][foc] > 0) {
           grid[lvl][foc]--;
-          flags[foc] = (grid[lvl][foc] === 0);
+          flags[lvl][foc] = (grid[lvl][foc] === 0);
         } else {
-          flags[foc] = true;  // schon leer → Flag AN
+          flags[lvl][foc] = true;  // schon leer → Flag AN
         }
         pos++; break;
       case 'FILL':
         grid[lvl][t.side] = t.ref ? grid[t.amt][t.rl] : t.amt;
-        flags[t.side] = false;  // Wert reinbekommen → Flag AUS
+        flags[lvl][t.side] = false;  // Wert reinbekommen → Flag AUS
         foc=t.side; pos++; break;
       case 'FLIP': {
         let tmp=grid[lvl][0]; grid[lvl][0]=grid[lvl][1]; grid[lvl][1]=tmp;
-        flags[0]=false; flags[1]=false;  // beide Seiten bekommen Wert
+        flags[lvl][0]=false; flags[lvl][1]=false;  // beide Seiten bekommen Wert
         pos++; break;
       }
       case 'PRINT': outLines.push(String(grid[lvl][foc])); pos++; break;
@@ -491,9 +491,9 @@ function exec(toks, pos) {
         // <° oder >° – prüfe Flag der Seite
         // Syntax: <° CODE : → führe CODE aus wenn Flag AN, sonst überspringe bis ':'
         pos++;
-        if (flags[t.side]) {
+        if (flags[lvl][t.side]) {
           // Flag AN → Code ausführen bis ':'
-          flags[t.side] = false;  // Flag nach Abfrage löschen
+          flags[lvl][t.side] = false;  // Flag nach Abfrage löschen
           pos = exec(toks, pos);
         } else {
           // Flag AUS → überspringe bis passendes ':'
@@ -529,7 +529,9 @@ function exec(toks, pos) {
             grid[l][f]--; grid[l][1-f]++;
             exec(toks,bs);
           }
-          // Springe immer vom Body-Start zum passenden ':'
+          // Schleife fertig – Fokus-Kammer ist leer → Flag AN!
+          flags[l][f] = true;
+          // Springe hinter passendes ':'
           let d=0, sp=bs;
           while(sp<toks.length){
             if(toks[sp].t==='PIPE') d++;
@@ -537,9 +539,11 @@ function exec(toks, pos) {
             sp++;
           }
         } else {
-          grid[lvl][1-foc]+=grid[lvl][foc];
-          if (grid[lvl][foc] > 0) flags[1-foc]=false;  // Sand rüber → Flag AUS
-          grid[lvl][foc]=0;
+          const hadSand = grid[lvl][foc] > 0;
+          grid[lvl][1-foc] += grid[lvl][foc];
+          if (hadSand) flags[lvl][1-foc] = false;
+          grid[lvl][foc] = 0;
+          flags[lvl][foc] = true;  // Quelle leer → Flag AN!
         }
         break;
       }
@@ -559,23 +563,23 @@ function execOne(toks, pos) {
     case 'RIGHT': foc=1; return pos+1;
     case 'UP':    lvl=Math.min(lvl+1,MAX_LEVELS-1); return pos+1;
     case 'DOWN':  lvl=Math.max(lvl-1,0); return pos+1;
-    case 'DROP':  grid[lvl][foc]++; flags[foc]=false; return pos+1;
+    case 'DROP':  grid[lvl][foc]++; flags[lvl][foc]=false; return pos+1;
     case 'REM':
       if (grid[lvl][foc]>0) {
         grid[lvl][foc]--;
-        flags[foc] = (grid[lvl][foc] === 0);
+        flags[lvl][foc] = (grid[lvl][foc] === 0);
       } else {
-        flags[foc] = true;
+        flags[lvl][foc] = true;
       }
       return pos+1;
     case 'FLAGCHECK': return exec(toks, pos);
     case 'FILL':
       grid[lvl][t.side] = t.ref ? grid[t.amt][t.rl] : t.amt;
-      flags[t.side]=false;
+      flags[lvl][t.side]=false;
       foc=t.side; return pos+1;
     case 'FLIP': {
       let tmp=grid[lvl][0]; grid[lvl][0]=grid[lvl][1]; grid[lvl][1]=tmp;
-      flags[0]=false; flags[1]=false;
+      flags[lvl][0]=false; flags[lvl][1]=false;
       return pos+1;
     }
     case 'PRINT': outLines.push(String(grid[lvl][foc])); return pos+1;
@@ -649,8 +653,8 @@ function renderViz() {
   document.getElementById('stL').textContent=grid[lvl][0];
   document.getElementById('stR').textContent=grid[lvl][1];
   document.getElementById('hdrInfo').textContent=`L${lvl} · ${foc===0?'Links':'Rechts'}`;
-  document.getElementById('flagL').textContent=flags[0]?'☀️':'🌑';
-  document.getElementById('flagR').textContent=flags[1]?'☀️':'🌑';
+  document.getElementById('flagL').textContent=flags[lvl][0]?'☀️':'🌑';
+  document.getElementById('flagR').textContent=flags[lvl][1]?'☀️':'🌑';
 }
 
 function renderOut() {
