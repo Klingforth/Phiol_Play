@@ -467,14 +467,18 @@ function exec(toks, pos) {
       case 'REM':
         if (grid[lvl][foc] > 0) {
           grid[lvl][foc]--;
-          flags[foc] = (grid[lvl][foc] === 0);  // Flag AN wenn Kammer jetzt leer
+          flags[foc] = (grid[lvl][foc] === 0);
         }
-        // wenn schon 0: Flag bleibt wie sie ist
         pos++; break;
       case 'FILL':
         grid[lvl][t.side] = t.ref ? grid[t.amt][t.rl] : t.amt;
+        flags[t.side] = false;  // Wert reinbekommen → Flag AUS
         foc=t.side; pos++; break;
-      case 'FLIP': { let tmp=grid[lvl][0]; grid[lvl][0]=grid[lvl][1]; grid[lvl][1]=tmp; pos++; break; }
+      case 'FLIP': {
+        let tmp=grid[lvl][0]; grid[lvl][0]=grid[lvl][1]; grid[lvl][1]=tmp;
+        flags[0]=false; flags[1]=false;  // beide Seiten bekommen Wert
+        pos++; break;
+      }
       case 'PRINT': outLines.push(String(grid[lvl][foc])); pos++; break;
       case 'FLAGCHECK': {
         // <° oder >° – prüfe Flag der Seite
@@ -525,7 +529,11 @@ function exec(toks, pos) {
             else if(toks[sp].t==='COL'){if(!d){pos=sp+1;break;}else d--;}
             sp++;
           }
-        } else { grid[lvl][1-foc]+=grid[lvl][foc]; grid[lvl][foc]=0; }
+        } else {
+          grid[lvl][1-foc]+=grid[lvl][foc];
+          if (grid[lvl][foc] > 0) flags[1-foc]=false;  // Sand rüber → Flag AUS
+          grid[lvl][foc]=0;
+        }
         break;
       }
       case 'COL': return pos+1;
@@ -552,8 +560,15 @@ function execOne(toks, pos) {
       }
       return pos+1;
     case 'FLAGCHECK': return exec(toks, pos);
-    case 'FILL':  grid[lvl][t.side] = t.ref ? grid[t.amt][t.rl] : t.amt; foc=t.side; return pos+1;
-    case 'FLIP': { let tmp=grid[lvl][0]; grid[lvl][0]=grid[lvl][1]; grid[lvl][1]=tmp; return pos+1; }
+    case 'FILL':
+      grid[lvl][t.side] = t.ref ? grid[t.amt][t.rl] : t.amt;
+      flags[t.side]=false;
+      foc=t.side; return pos+1;
+    case 'FLIP': {
+      let tmp=grid[lvl][0]; grid[lvl][0]=grid[lvl][1]; grid[lvl][1]=tmp;
+      flags[0]=false; flags[1]=false;
+      return pos+1;
+    }
     case 'PRINT': outLines.push(String(grid[lvl][foc])); return pos+1;
     case 'INPUT': {
       const val = window.prompt('FLUX Eingabe – Zahl eingeben:');
