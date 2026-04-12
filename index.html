@@ -360,6 +360,7 @@ Beispiel:
           <tr><td>"</td><td>Fokus-Wert ausgeben</td></tr>
           <tr><td>'</td><td>Zahl einlesen (öffnet Eingabefenster)</td></tr>
           <tr><td>?</td><td>Debug: 3 Ebenen anzeigen</td></tr>
+          <tr><td>~</td><td>Korn entfernen – Flag AN wenn Kammer danach leer</td></tr>
           <tr><td>&lt;°</td><td>IF: führe Code aus wenn linke Flag AN</td></tr>
           <tr><td>&gt;°</td><td>IF: führe Code aus wenn rechte Flag AN</td></tr>
         </table>
@@ -367,6 +368,8 @@ Beispiel:
 
       <div class="ref-note">
         <strong>Kommentare:</strong> Alles was kein FLUX-Symbol ist wird ignoriert.<br>
+        <strong>Flag-Regel:</strong> <code>~</code> setzt Flag AN wenn Kammer danach leer. <code>*</code> <code>&lt;N</code> <code>&gt;N</code> <code>|</code> <code>!</code> setzen Flag AUS.<br>
+        <strong>IF mit Flag:</strong> <code>&lt;3 ~ ~ ~ &lt;° " :</code> → gibt Wert aus wenn Kammer leer<br>
         <strong>IF-ELSE:</strong> <code>&gt;1 &lt; | &gt;0 IF-CODE : &gt; | ELSE-CODE :</code><br>
         <strong>Pointer:</strong> <code>+ &lt;25 - &lt;1L "</code> → speichert 25 auf L1, liest es zurück<br>
         <strong>Addition:</strong> <code>&lt;5 &gt;3 | &lt;"</code> &nbsp;·&nbsp;
