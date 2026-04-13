@@ -260,7 +260,7 @@ header .wrapper { display:flex; align-items:flex-end; justify-content:space-betw
       <div class="logo">FLUX</div>
       <div class="logo-sub">Logik in Bewegung · Playground</div>
     </div>
-    <div class="by">By Patrick Klingforth (Rick)<br>Version 0.1</div>
+    <div class="by">By Patrick Klingforth (Rick)<br>Version 0.3</div>
   </div>
 </header>
 
@@ -275,9 +275,17 @@ header .wrapper { display:flex; align-items:flex-end; justify-content:space-betw
     <button class="ex-btn" onclick="loadEx('add')">Addition</button>
     <button class="ex-btn" onclick="loadEx('sub')">Subtraktion</button>
     <button class="ex-btn" onclick="loadEx('mul')">Multiplikation</button>
-    <button class="ex-btn" onclick="loadEx('if')">IF-ELSE</button>
     <button class="ex-btn" onclick="loadEx('ptr')">Pointer</button>
     <button class="ex-btn" onclick="loadEx('flag')">Flag °</button>
+    <div class="sep"></div>
+    <span class="ex-label">Ebenen:</span>
+    <select id="levelsSelect" onchange="setLevels(this.value)" style="font-family:'DM Mono',monospace;font-size:0.62rem;padding:0.3rem 0.5rem;border:1px solid var(--sand-dark);background:var(--parch-dark);color:var(--ink);border-radius:2px;outline:none;cursor:pointer;">
+      <option value="16">16</option>
+      <option value="32">32</option>
+      <option value="64" selected>64</option>
+      <option value="128">128</option>
+      <option value="300">300</option>
+    </select>
   </div>
 
   <div class="grid">
@@ -362,12 +370,11 @@ Beispiel:
           <tr><td>"</td><td>Fokus-Wert ausgeben</td></tr>
           <tr><td>'</td><td>Zahl einlesen (öffnet Eingabefenster)</td></tr>
           <tr><td>?</td><td>Debug: 3 Ebenen anzeigen</td></tr>
-          <tr><td>~</td><td>Korn entfernen – Flag AN wenn Kammer danach leer</td></tr>
         </table>
       </div>
 
       <div class="ref-section">
-        <h4>Bedingung</h4>
+        <h4>Ein- & Ausgabe</h4>
         <table class="ref-table">
           <tr><td>~</td><td>Korn entfernen – Flag AN wenn Kammer danach leer</td></tr>
           <tr><td>&lt;°</td><td>IF: führe Code aus wenn linke Flag AN – schließen mit <code>;</code></td></tr>
@@ -386,6 +393,7 @@ Beispiel:
         <strong>Subtraktion:</strong> <code>&gt;3 + &lt;10 - &gt; | &lt; + ~ - &gt; : + &lt;"</code>
       </div>
 
+      
     </div>
   </div>
 
@@ -394,7 +402,7 @@ Beispiel:
 <script>
 // ─── FLUX Interpreter ────────────────────────────────────
 
-const MAX_LEVELS = 64;
+let MAX_LEVELS = 64;
 
 let grid, lvl, foc, outLines, flags;
 // Step-Modus
@@ -749,14 +757,18 @@ const examples = {
   add: `Addition: 5 + 3 = 8\n<5 >3 | <"`,
   sub: `Subtraktion: 10 - 3 = 7\n>3 + <10 - > | < + ~ - > : + <"`,
   mul: `Multiplikation: 6 x 8 = 48\n<6 + <8 - | + | + * - : ! - : + ?`,
-  if:  `IF-ELSE: wenn links Sand, dann L1 sonst L2\n\n<5\n>1 < | >0 + * - : > | + + * - - :`,
   ptr: `Pointer - Variablen:\nSpeichere 3 Werte und lese sie wieder\n\n+ <25\n+ <42\n+ <99\n- - -\n<1L "\n<2L "\n<3L "`,
-  flag: `Flag System Test:\n~ setzt Flag wenn Kammer leer\n<° CODE ; fuehrt aus wenn Flag AN\n\n<3 ~ ~ ~ <° " ;`,
+  flag: `Flag System Test:\n~ setzt Flag wenn Kammer leer\n<° CODE ; fuehrt aus wenn Flag AN\n\n<1 ~ >° + <4 ; ;`,
 };
 
 function loadEx(name) {
   resetState();
   document.getElementById('editor').value=examples[name]||'';
+}
+
+function setLevels(val) {
+  MAX_LEVELS = parseInt(val);
+  resetState();
 }
 
 // ─── Syntax Referenz Toggle ────────────────────────────────
