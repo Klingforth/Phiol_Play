@@ -97,8 +97,13 @@ header .wrapper { display:flex; align-items:flex-end; justify-content:space-betw
   .grid { grid-template-columns: 1fr; }
   .logo { font-size:1.3rem; }
   .by { display:none; }
-  .toolbar { gap:0.3rem; }
+  .toolbar { gap:0.3rem; flex-wrap:wrap; }
   .btn { font-size:0.65rem; padding:0.4rem 0.7rem; }
+  .ex-btn { font-size:0.6rem; padding:0.3rem 0.5rem; }
+  .status { gap:0.5rem; font-size:0.6rem; }
+  #editor { height:160px; font-size:0.8rem; }
+  .phiole-item { font-size:0.6rem; }
+  .phiole-code { max-width:100px; }
 }
 
 .panel {
@@ -413,15 +418,17 @@ Beispiel:
     </div>
     <div id="phiolenBody" style="display:none; padding:0.8rem; background:var(--parch-dark);">
 
-      <div style="display:grid; grid-template-columns:1fr 2fr auto; gap:0.4rem; margin-bottom:0.6rem; align-items:start;">
-        <input id="phioleName" placeholder="Name (z.B. blink)"
-          style="font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.35rem 0.5rem;border:1px solid var(--sand-dark);background:var(--parchment);color:var(--terra);border-radius:2px;outline:none;">
-        <input id="phioleCode" placeholder="FLUX Code (z.B. + &lt;0L # &lt;0L ^ &lt;1L d &lt;0L v &lt;1L d -)"
-          style="font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.35rem 0.5rem;border:1px solid var(--sand-dark);background:var(--parchment);color:var(--terra);border-radius:2px;outline:none;">
-        <div style="display:flex;gap:0.3rem;">
-          <button onclick="addPhiole()" style="font-family:'DM Mono',monospace;font-size:0.65rem;padding:0.35rem 0.6rem;border:1px solid var(--sand-dark);background:var(--terra);color:var(--sand-light);border-radius:2px;cursor:pointer;">+ Hinzufügen</button>
-          <button onclick="loadPhioleFile()" style="font-family:'DM Mono',monospace;font-size:0.65rem;padding:0.35rem 0.6rem;border:1px solid var(--sand-dark);background:var(--parch-dark);color:var(--ink);border-radius:2px;cursor:pointer;">📂 .fx laden</button>
-          <button onclick="savePhioleFile()" style="font-family:'DM Mono',monospace;font-size:0.65rem;padding:0.35rem 0.6rem;border:1px solid var(--sand-dark);background:var(--parch-dark);color:var(--ink);border-radius:2px;cursor:pointer;">💾 .fx speichern</button>
+      <div style="display:flex; flex-direction:column; gap:0.4rem; margin-bottom:0.6rem;">
+        <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+          <input id="phioleName" placeholder="Name (z.B. blink)"
+            style="flex:1;min-width:80px;font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.35rem 0.5rem;border:1px solid var(--sand-dark);background:var(--parchment);color:var(--terra);border-radius:2px;outline:none;">
+          <input id="phioleCode" placeholder="FLUX Code..."
+            style="flex:3;min-width:120px;font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.35rem 0.5rem;border:1px solid var(--sand-dark);background:var(--parchment);color:var(--terra);border-radius:2px;outline:none;">
+        </div>
+        <div style="display:flex;gap:0.3rem;flex-wrap:wrap;">
+          <button onclick="addPhiole()" style="font-family:'DM Mono',monospace;font-size:0.65rem;padding:0.35rem 0.7rem;border:1px solid var(--sand-dark);background:var(--terra);color:var(--sand-light);border-radius:2px;cursor:pointer;flex:1;">+ Hinzufügen</button>
+          <button onclick="loadPhioleFile()" style="font-family:'DM Mono',monospace;font-size:0.65rem;padding:0.35rem 0.7rem;border:1px solid var(--sand-dark);background:var(--parch-dark);color:var(--ink);border-radius:2px;cursor:pointer;flex:1;">📂 Laden</button>
+          <button onclick="savePhioleFile()" style="font-family:'DM Mono',monospace;font-size:0.65rem;padding:0.35rem 0.7rem;border:1px solid var(--sand-dark);background:var(--parch-dark);color:var(--ink);border-radius:2px;cursor:pointer;flex:1;">💾 Speichern</button>
         </div>
       </div>
 
