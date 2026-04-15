@@ -421,6 +421,7 @@ Beispiel:
         <div style="display:flex;gap:0.3rem;">
           <button onclick="addPhiole()" style="font-family:'DM Mono',monospace;font-size:0.65rem;padding:0.35rem 0.6rem;border:1px solid var(--sand-dark);background:var(--terra);color:var(--sand-light);border-radius:2px;cursor:pointer;">+ Hinzufügen</button>
           <button onclick="loadPhioleFile()" style="font-family:'DM Mono',monospace;font-size:0.65rem;padding:0.35rem 0.6rem;border:1px solid var(--sand-dark);background:var(--parch-dark);color:var(--ink);border-radius:2px;cursor:pointer;">📂 .fx laden</button>
+          <button onclick="savePhioleFile()" style="font-family:'DM Mono',monospace;font-size:0.65rem;padding:0.35rem 0.6rem;border:1px solid var(--sand-dark);background:var(--parch-dark);color:var(--ink);border-radius:2px;cursor:pointer;">💾 .fx speichern</button>
         </div>
       </div>
 
@@ -731,6 +732,21 @@ function addPhiole() {
   phioleAdd(name, code);
   document.getElementById('phioleName').value = '';
   document.getElementById('phioleCode').value = '';
+}
+
+function savePhioleFile() {
+  const name = document.getElementById('phioleName').value.trim();
+  const code = document.getElementById('phioleCode').value.trim();
+  if (!name || !code) {
+    alert('Bitte Name und Code eingeben!');
+    return;
+  }
+  const blob = new Blob([code], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name + '.fx';
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 function loadPhioleFile() {
