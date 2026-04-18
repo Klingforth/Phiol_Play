@@ -99,6 +99,7 @@ header .wrapper { display:flex; align-items:flex-end; justify-content:space-betw
   .by { display:none; }
   .toolbar { gap:0.3rem; }
   .btn { font-size:0.65rem; padding:0.4rem 0.7rem; }
+  #legalBody > div { grid-template-columns: 1fr !important; }
 }
 
 .panel {
@@ -512,6 +513,69 @@ Beispiel:
 
       <div id="phiolenList" style="display:flex;flex-wrap:wrap;gap:0.3rem;"></div>
 
+    </div>
+  </div>
+
+  <!-- Impressum & Datenschutz -->
+  <div class="ref" style="margin-top:0.6rem; margin-bottom:2rem;">
+    <div class="ref-header" onclick="toggleLegal()">
+      ⚖️ Impressum &amp; Datenschutz
+      <span class="ref-toggle" id="legalToggle">▼ aufklappen</span>
+    </div>
+    <div id="legalBody" style="display:none; background:var(--parch-dark);">
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; padding:1rem;">
+
+        <!-- Impressum -->
+        <div>
+          <h4 style="font-family:'Cinzel',serif; font-size:0.6rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--terra); margin-bottom:0.7rem; padding-bottom:0.3rem; border-bottom:1px solid var(--sand-dark);">Impressum</h4>
+          <div style="font-size:0.7rem; line-height:2; color:var(--ink-light);">
+            <p style="margin-bottom:0.5rem;"><strong style="color:var(--terra);">Angaben gemäß § 5 TMG</strong></p>
+            <p>Patrick Klingforth<br>
+            <p style="margin-top:0.7rem;"><strong style="color:var(--terra);">Kontakt</strong></p>
+            <p>E-Mail: p.klingforth@web.de<br>
+            <p style="margin-top:0.7rem;"><strong style="color:var(--terra);">Verantwortlich für den Inhalt</strong></p>
+            <p>Patrick Klingforth</p>
+
+            <p style="margin-top:0.7rem;"><strong style="color:var(--terra);">1. Haftung für Inhalte</strong></p>
+            <p>Als Diensteanbieter sind wir gemäß § 7 Abs.1 TMG für eigene Inhalte auf diesen Seiten 
+              nach den allgemeinen Gesetzen verantwortlich. Nach §§ 8 bis 10 TMG sind wir als Diensteanbieter jedoch nicht verpflichtet, 
+              übermittelte oder gespeicherte fremde Informationen zu überwachen oder nach 
+              Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen. </p>
+
+            <p style="margin-top:0.7rem;"><strong style="color:var(--terra);">2. Haftung für Links</strong></p>
+            <p> Unser Angebot enthält Links zu externen Websites Dritter, auf deren Inhalte wir keinen Einfluss haben. 
+              Deshalb können wir für diese fremden Inhalte auch keine Gewähr übernehmen. 
+              Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber der Seiten verantwortlich.</p>
+
+          </div>
+        </div>
+
+        <!-- Datenschutz -->
+        <div>
+          <h4 style="font-family:'Cinzel',serif; font-size:0.6rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--terra); margin-bottom:0.7rem; padding-bottom:0.3rem; border-bottom:1px solid var(--sand-dark);">Datenschutzerklärung</h4>
+          <div style="font-size:0.7rem; line-height:2; color:var(--ink-light);">
+            <p style="margin-bottom:0.5rem;"><strong style="color:var(--terra);">1. Datenschutz auf einen Blick</strong></p>
+            <p> Diese Website erhebt und verarbeitet keine personenbezogenen Daten. 
+              Es werden keine Cookies gesetzt, kein Tracking durchgeführt und keine Analyse-Tools eingesetzt. </p>
+
+              <p style="margin-top:0.7rem;"><strong style="color:var(--terra);">2. Verantwortliche Stelle</strong></p>
+            <p>Patrick Klingforth<br>
+            <p>E-Mail: p.klingforth@web.de<br>
+
+               <p style="margin-top:0.7rem;"><strong style="color:var(--terra);">3. Server-Logfiles</strong></p>
+            <p>Der Hosting-Anbieter dieser Website erhebt und speichert automatisch Informationen in Server-Logfiles, die Ihr Browser automatisch übermittelt. 
+              Dies sind IP-Adresse, Browsertyp, Betriebssystem, Referrer-URL, Datum und Uhrzeit der Anfrage. 
+              Eine Zusammenführung dieser Daten mit anderen Datenquellen wird nicht vorgenommen. </p>
+
+            <p style="margin-top:0.7rem;"><strong style="color:var(--terra);">4. Ihre Rechte</strong></p>
+            <p>Sie haben jederzeit das Recht auf Auskunft über Ihre gespeicherten personenbezogenen Daten, deren Herkunft und Empfänger sowie den Zweck der Datenverarbeitung. 
+              Wenden Sie sich dazu an die oben genannte E-Mail-Adresse. </p>
+            </p>
+          </div>
+        </div>
+
+      </div>
     </div>
   </div>
 
@@ -1050,6 +1114,18 @@ document.addEventListener('keydown',e=>{
   if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();runCode();}
 });
 
+
+function toggleLegal() {
+  const body = document.getElementById('legalBody');
+  const tog  = document.getElementById('legalToggle');
+  if (body.style.display === 'none') {
+    body.style.display = 'block';
+    tog.textContent = '▲ zuklappen';
+  } else {
+    body.style.display = 'none';
+    tog.textContent = '▼ aufklappen';
+  }
+}
 
 // ─── Night Mode & Sterne ──────────────────────────────────
 
