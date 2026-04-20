@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PHIOL Playground</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sand-light:  #f5e6c8;
+  --sand:        #e8c98a;
+  --sand-dark:   #c9a85c;
+  --sand-deep:   #a07840;
+  --terra:       #8b4513;
+  --terra-light: #c0622a;
+  --stone:       #d4c4a0;
+  --stone-dark:  #b0a080;
+  --parchment:   #fdf6e3;
+  --parch-dark:  #f0e4c0;
+  --ink:         #3d2b1f;
+  --ink-light:   #6b4c38;
+  --ink-muted:   #9b7a60;
+  --glass-bg:    rgba(232,201,138,0.15);
+  --focus-l:     #8b4513;
+  --focus-r:     #c0622a;
+  --green:       #5a7a3a;
+  --red:         #8b2020;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--parchment);
+  background-image:
+    radial-gradient(ellipse at 20% 0%, rgba(201,168,92,0.2) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 100%, rgba(139,69,19,0.1) 0%, transparent 60%);
+  color: var(--ink);
+  font-family: 'DM Mono', monospace;
+  min-height: 100vh;
+}
+
+body::after {
+  content:''; position:fixed; inset:0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events:none; z-index:998;
+}
+
+.wrapper { max-width: 1100px; margin: 0 auto; padding: 0 1rem; }
+
+header {
+  border-bottom: 2px solid var(--sand-dark);
+  padding: 1rem 0;
+  margin-bottom: 1.2rem;
+}
+header .wrapper { display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:0.5rem; }
+
+.logo { font-family:'Cinzel',serif; font-weight:700; font-size:1.8rem; color:var(--terra); letter-spacing:0.15em; line-height:1; }
+.logo-sub { font-family:'DM Mono',monospace; font-size:0.6rem; color:var(--ink-muted); letter-spacing:0.25em; text-transform:uppercase; margin-top:0.2rem; }
+.by { font-size:0.62rem; color:var(--ink-muted); text-align:right; line-height:1.6; }
+
+/* Toolbar */
+.toolbar {
+  display:flex; gap:0.4rem; align-items:center;
+  margin-bottom:1rem; flex-wrap:wrap;
+}
+.btn {
+  font-family:'DM Mono',monospace; font-size:0.7rem;
+  padding:0.4rem 0.9rem;
+  border:1.5px solid var(--sand-dark); background:var(--parch-dark);
+  color:var(--ink); cursor:pointer; border-radius:2px; transition:all 0.15s;
+}
+.btn:hover { background:var(--sand); border-color:var(--terra); }
+.btn.primary { background:var(--terra); color:var(--sand-light); border-color:var(--terra); font-weight:500; }
+.btn.primary:hover { background:var(--terra-light); }
+.btn.danger { border-color:var(--red); color:var(--red); }
+.btn.danger:hover { background:var(--red); color:var(--parchment); }
+.btn.active { background:var(--sand-dark); color:var(--ink); border-color:var(--terra); }
+
+.sep { width:1px; height:18px; background:var(--sand-dark); margin:0 0.2rem; }
+.ex-label { font-size:0.62rem; color:var(--ink-muted); white-space:nowrap; }
+.ex-btn {
+  font-family:'DM Mono',monospace; font-size:0.62rem;
+  padding:0.3rem 0.6rem; border:1px solid var(--stone-dark);
+  background:transparent; color:var(--ink-muted); cursor:pointer; border-radius:2px; transition:all 0.15s;
+}
+.ex-btn:hover { border-color:var(--terra); color:var(--terra); background:rgba(139,69,19,0.05); }
+
+/* Grid */
+.grid {
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:1rem;
+  align-items:start;
+}
+
+@media (max-width: 700px) {
+  .grid { grid-template-columns: 1fr; }
+  .logo { font-size:1.3rem; }
+  .by { display:none; }
+  .toolbar { gap:0.3rem; }
+  .btn { font-size:0.65rem; padding:0.4rem 0.7rem; }
+  #legalBody > div { grid-template-columns: 1fr !important; }
+}
+
+.panel {
+  background:var(--parch-dark);
+  border:1.5px solid var(--sand-dark);
+  border-radius:4px; overflow:hidden;
+}
+.panel-header {
+  font-family:'Cinzel',serif; font-size:0.65rem;
+  letter-spacing:0.2em; text-transform:uppercase;
+  color:var(--terra); padding:0.5rem 0.8rem;
+  background:rgba(201,168,92,0.2);
+  border-bottom:1px solid var(--sand-dark);
+  display:flex; justify-content:space-between; align-items:center;
+}
+.panel-header span { font-family:'DM Mono',monospace; font-size:0.58rem; color:var(--ink-muted); font-weight:normal; text-transform:none; letter-spacing:0.03em; }
+
+/* Editor */
+#editor {
+  width:100%; height:240px;
+  background:var(--parchment); color:var(--terra);
+  font-family:'DM Mono',monospace; font-size:0.9rem;
+  padding:0.8rem; border:none; outline:none; resize:vertical;
+  line-height:1.8; letter-spacing:0.06em; caret-color:var(--terra);
+}
+#editor::placeholder { color:var(--stone-dark); font-size:0.78rem; }
+
+/* Step highlight */
+#editor.stepping { background: #fef9ed; }
+
+.output-box {
+  min-height:50px; max-height:80px; overflow-y:auto;
+  padding:0.5rem 0.8rem; background:var(--parchment);
+  border-top:1px solid var(--sand-dark);
+  font-size:0.75rem; line-height:1.8;
+}
+.out-line { color:var(--green); }
+.out-line.err { color:var(--red); }
+
+/* Viz */
+.viz-box {
+  padding:0.6rem; background:var(--parchment);
+  min-height:280px; max-height:360px; overflow-y:auto;
+  display:flex; flex-direction:column; gap:0.25rem;
+}
+
+.level-row {
+  display:grid;
+  grid-template-columns: 2rem 1fr 0.3rem 1fr 1rem;
+  align-items:center; gap:0.3rem;
+  padding:0.2rem 0.25rem; border-radius:3px;
+  border:1px solid transparent; transition:all 0.2s;
+}
+.level-row.active { background:rgba(139,69,19,0.06); border-color:rgba(139,69,19,0.25); }
+
+.lvl-num { font-size:0.55rem; color:var(--ink-muted); text-align:right; }
+.level-row.active .lvl-num { color:var(--terra); font-weight:500; }
+
+.chamber {
+  height:20px; background:var(--glass-bg);
+  border:1px solid var(--stone-dark); border-radius:2px;
+  position:relative; overflow:hidden; display:flex; align-items:center;
+}
+.chamber.foc-l { border-color:var(--focus-l); background:rgba(139,69,19,0.08); }
+.chamber.foc-r { border-color:var(--focus-r); background:rgba(192,98,42,0.08); }
+
+.ch-fill {
+  position:absolute; left:0; top:0; bottom:0;
+  background:linear-gradient(90deg, rgba(201,168,92,0.7), rgba(201,168,92,0.3));
+  transition:width 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.ch-val { position:relative; z-index:1; font-size:0.62rem; padding:0 0.35rem; color:var(--terra); font-weight:500; }
+.ch-tag { position:absolute; right:0.2rem; font-size:0.48rem; color:var(--stone-dark); z-index:1; }
+.foc-ind { font-size:0.55rem; color:var(--terra); text-align:center; opacity:0; }
+.level-row.active .foc-ind { opacity:1; }
+
+/* Status */
+.status {
+  margin-top:0.8rem;
+  display:flex; gap:1rem; padding:0.5rem 0.8rem;
+  background:var(--parch-dark); border:1.5px solid var(--sand-dark);
+  border-radius:4px; font-size:0.65rem; color:var(--ink-muted);
+  align-items:center; flex-wrap:wrap;
+}
+.st-item { display:flex; gap:0.3rem; }
+.st-val { color:var(--terra); font-weight:500; }
+.st-dot { width:6px; height:6px; border-radius:50%; background:var(--green); flex-shrink:0; margin-top:2px; }
+.st-dot.run { background:var(--sand-dark); animation:blink 0.7s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+/* ─── Syntax Referenz ─────────────────────────────────── */
+.ref {
+  margin-top:1.2rem;
+  background:var(--parch-dark);
+  border:1.5px solid var(--sand-dark);
+  border-radius:4px; overflow:hidden;
+}
+.ref-header {
+  font-family:'Cinzel',serif; font-size:0.65rem;
+  letter-spacing:0.2em; text-transform:uppercase;
+  color:var(--terra); padding:0.5rem 1rem;
+  background:rgba(201,168,92,0.2);
+  border-bottom:1px solid var(--sand-dark);
+  cursor:pointer; display:flex; justify-content:space-between; align-items:center;
+  user-select:none;
+}
+.ref-header:hover { background:rgba(201,168,92,0.3); }
+.ref-toggle { font-size:0.7rem; color:var(--ink-muted); }
+
+.ref-body {
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap:0; padding:0;
+  overflow:hidden; max-height:0;
+  transition:max-height 0.3s ease;
+}
+.ref-body.open { max-height:1000px; padding:0.8rem; gap:1rem; }
+
+.ref-section h4 {
+  font-family:'Cinzel',serif; font-size:0.6rem;
+  letter-spacing:0.15em; text-transform:uppercase;
+  color:var(--terra); margin-bottom:0.5rem;
+  padding-bottom:0.25rem; border-bottom:1px solid var(--sand-dark);
+}
+
+.ref-table { width:100%; border-collapse:collapse; }
+.ref-table tr { border-bottom:1px solid rgba(176,160,128,0.3); }
+.ref-table tr:last-child { border-bottom:none; }
+.ref-table td { padding:0.25rem 0.3rem; font-size:0.68rem; vertical-align:top; }
+.ref-table td:first-child {
+  font-weight:500; color:var(--terra);
+  width:2.5rem; font-size:0.75rem; letter-spacing:0.05em;
+}
+.ref-table td:last-child { color:var(--ink-light); }
+
+.ref-note {
+  grid-column: 1 / -1;
+  font-size:0.65rem; color:var(--ink-muted);
+  padding:0.5rem 0.8rem;
+  background:rgba(201,168,92,0.1);
+  border-radius:3px; border:1px solid var(--sand-dark);
+  line-height:1.7;
+}
+.ref-note code {
+  color:var(--terra); background:rgba(139,69,19,0.1);
+  padding:0.1rem 0.3rem; border-radius:2px; font-size:0.7rem;
+}
+
+.phiole-item {
+  display:flex; align-items:center; gap:0.4rem;
+  padding:0.25rem 0.5rem;
+  background:var(--parchment);
+  border:1px solid var(--sand-dark);
+  border-radius:2px; cursor:pointer;
+  font-size:0.65rem; transition: background 0.1s;
+}
+.phiole-item:hover { background:var(--sand-light); }
+.phiole-name { color:var(--terra); font-weight:500; white-space:nowrap; }
+.phiole-code { color:var(--ink-muted); max-width:180px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.phiole-del { background:none; border:none; color:var(--red); cursor:pointer; font-size:0.7rem; padding:0 0.2rem; }
+.phiole-del:hover { color:var(--terra); }
+
+/* ─── Night Mode ─────────────────────────────────────────── */
+body.night {
+  --sand-light:  #e8d5a0;
+  --sand:        #c9a85c;
+  --sand-dark:   #a07840;
+  --sand-deep:   #7a5c30;
+  --terra:       #c9a85c;
+  --terra-light: #e8c98a;
+  --stone:       #1a2540;
+  --stone-dark:  #2a3a5c;
+  --parchment:   #080d1a;
+  --parch-dark:  #0d1529;
+  --ink:         #e8d5b0;
+  --ink-light:   #c9a85c;
+  --ink-muted:   #7a8fb0;
+  --glass-bg:    rgba(80,120,220,0.1);
+  --focus-l:     #c9a85c;
+  --focus-r:     #e8c98a;
+  --green:       #4aaa6a;
+  --red:         #c05050;
+}
+
+body.night {
+  background: #080d1a;
+  background-image:
+    radial-gradient(ellipse at 20% 0%,  rgba(30,60,120,0.5) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 100%, rgba(201,168,92,0.08) 0%, transparent 60%);
+}
+
+/* Sterne */
+.stars {
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 0;
+  overflow: hidden;
+}
+.stars canvas { width:100%; height:100%; }
+
+body:not(.night) .stars { display: none; }
+
+/* Alles über den Sternen */
+header, .wrapper { position: relative; z-index: 1; }
+
+/* Night-Toggle Button */
+.night-toggle {
+  font-family: 'DM Mono', monospace; font-size: 0.7rem;
+  padding: 0.35rem 0.8rem;
+  border: 1.5px solid var(--sand-dark); background: transparent;
+  color: var(--ink-muted); cursor: pointer; border-radius: 2px;
+  transition: all 0.2s; white-space: nowrap;
+}
+.night-toggle:hover { border-color: var(--terra); color: var(--terra); }
+body.night .night-toggle {
+  border-color: var(--terra); color: var(--terra);
+  background: rgba(201,168,92,0.08);
+}
+
+/* Scrollbar night */
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--sand-dark); border-radius:2px; }
+</style>
+</head>
+<body>
+
+<div class="stars"><canvas id="starCanvas"></canvas></div>
+
+<header>
+  <div class="wrapper">
+    <div>
+      <div class="logo">PHIOL</div>
+      <div class="logo-sub">Logik in Bewegung · Playground</div>
+    </div>
+    <div style="display:flex;align-items:flex-end;gap:1rem;">
+      <button class="night-toggle" onclick="toggleNight()" id="nightBtn">🌙 Nachtmodus</button>
+      <div class="by">By Patrick Klingforth (Rick)<br>Version 0.2</div>
+    </div>
+  </div>
+</header>
+
+<div class="wrapper">
+
+  <div class="toolbar">
+    <button class="btn primary" onclick="runCode()">▶ Run</button>
+    <button class="btn" id="stepBtn" onclick="stepCode()">⟶ Step</button>
+    <button class="btn danger" onclick="resetState()">↺ Reset</button>
+    <div class="sep"></div>
+    <span class="ex-label">Beispiele:</span>
+    <button class="ex-btn" onclick="loadEx('add')">Addition</button>
+    <button class="ex-btn" onclick="loadEx('sub')">Subtraktion</button>
+    <button class="ex-btn" onclick="loadEx('mul')">Multiplikation</button>
+    <button class="ex-btn" onclick="loadEx('if')">IF-ELSE</button>
+    <button class="ex-btn" onclick="loadEx('ptr')">Pointer</button>
+    <button class="ex-btn" onclick="loadEx('flag')">Flag °</button>
+    <div class="sep"></div>
+    <span class="ex-label">Ebenen:</span>
+    <select id="levelsSelect" onchange="setLevels(this.value)" style="font-family:'DM Mono',monospace;font-size:0.62rem;padding:0.3rem 0.5rem;border:1px solid var(--sand-dark);background:var(--parch-dark);color:var(--ink);border-radius:2px;outline:none;cursor:pointer;">
+      <option value="16">16</option>
+      <option value="32">32</option>
+      <option value="64" selected>64</option>
+      <option value="128">128</option>
+      <option value="300">300</option>
+    </select>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="panel">
+        <div class="panel-header">
+          Code
+          <span id="stepInfo">Ctrl+Enter = Run</span>
+        </div>
+        <textarea id="editor" spellcheck="false"
+          placeholder="
+
+
+&lt;5 &gt;3 | &lt;&quot;"></textarea>
+        <div class="output-box" id="output"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel">
+        <div class="panel-header">
+          Glass Grid
+          <span id="hdrInfo">L0 · Links</span>
+        </div>
+        <div class="viz-box" id="viz"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="status">
+    <div class="st-item"><div class="st-dot" id="stDot"></div><span id="stText">bereit</span></div>
+    <div class="st-item">Ebene: <span class="st-val" id="stLvl">0</span></div>
+    <div class="st-item">Fokus: <span class="st-val" id="stFoc">Links</span></div>
+    <div class="st-item">Links: <span class="st-val" id="stL">0</span></div>
+    <div class="st-item">Rechts: <span class="st-val" id="stR">0</span></div>
+    <div class="st-item">Flag L: <span id="flagL" style="font-size:1rem">🌑</span></div>
+    <div class="st-item">Flag R: <span id="flagR" style="font-size:1rem">🌑</span></div>
+  </div>
+
+  <!-- Syntax Referenz -->
+  <div class="ref">
+    <div class="ref-header" onclick="toggleRef()">
+      Syntax Referenz
+      <span class="ref-toggle" id="refToggle">▼ aufklappen</span>
+    </div>
+    <div class="ref-body" id="refBody">
+
+      <div class="ref-section">
+        <h4>Orientierung</h4>
+        <table class="ref-table">
+          <tr><td>&lt;</td><td>Fokus auf linke Kammer</td></tr>
+          <tr><td>&gt;</td><td>Fokus auf rechte Kammer</td></tr>
+          <tr><td>+</td><td>Eine Ebene nach oben</td></tr>
+          <tr><td>-</td><td>Eine Ebene nach unten</td></tr>
+        </table>
+      </div>
+
+      <div class="ref-section">
+        <h4>Sand & Kammern</h4>
+        <table class="ref-table">
+          <tr><td>*</td><td>Ein Korn erzeugen (Einlass)</td></tr>
+          <tr><td>~</td><td>Ein Korn entfernen (Auslass)</td></tr>
+          <tr><td>&lt;N</td><td>Linke Kammer auf N setzen</td></tr>
+          <tr><td>&gt;N</td><td>Rechte Kammer auf N setzen</td></tr>
+          <tr><td>&lt;NL</td><td>Wert von LN-links holen (Pointer)</td></tr>
+          <tr><td>&lt;NR</td><td>Wert von LN-rechts holen (Pointer)</td></tr>
+          <tr><td>!</td><td>Links ↔ Rechts tauschen</td></tr>
+        </table>
+      </div>
+
+      <div class="ref-section">
+        <h4>Schleuse</h4>
+        <table class="ref-table">
+          <tr><td>|</td><td>Alles von Fokus zur anderen Seite schütten</td></tr>
+          <tr><td>| … :</td><td>Schleife: ein Korn pro Runde, Code im Fluss</td></tr>
+        </table>
+      </div>
+
+      <div class="ref-section">
+        <h4>Ein- & Ausgabe</h4>
+        <table class="ref-table">
+          <tr><td>"</td><td>Fokus-Wert ausgeben (Zahl)</td></tr>
+          <tr><td>#</td><td>Fokus-Wert als Zeichen ausgeben (PHIOL ASCII)</td></tr>
+          <tr><td>'</td><td>Zahl einlesen (öffnet Eingabefenster)</td></tr>
+          <tr><td>?</td><td>Debug: 3 Ebenen anzeigen</td></tr>
+          <tr><td>~</td><td>Korn entfernen – Flag AN wenn Kammer danach leer</td></tr>
+          <tr><td>&lt;°</td><td>IF: führe Code aus wenn linke Flag AN – schließen mit <code>;</code></td></tr>
+          <tr><td>&gt;°</td><td>IF: führe Code aus wenn rechte Flag AN – schließen mit <code>;</code></td></tr>
+          <tr><td>;</td><td>IF-Block schließen (Gegenstück zu °)</td></tr>
+        </table>
+      </div>
+
+      <div class="ref-section" style="grid-column:1/-1">
+        <h4>PHIOL ASCII – <code>#</code> Zeichen ausgeben</h4>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:0.4rem 1.2rem;font-size:0.65rem;line-height:2;">
+          <div><span style="color:var(--terra);font-weight:500">10–35</span> &nbsp;A – Z</div>
+          <div><span style="color:var(--terra);font-weight:500">36–61</span> &nbsp;a – z</div>
+          <div><span style="color:var(--terra);font-weight:500">62</span> &nbsp;(Leerzeichen)</div>
+          <div><span style="color:var(--terra);font-weight:500">63</span> &nbsp;.</div>
+          <div><span style="color:var(--terra);font-weight:500">64</span> &nbsp;,</div>
+          <div><span style="color:var(--terra);font-weight:500">65</span> &nbsp;_</div>
+          <div><span style="color:var(--terra);font-weight:500">66</span> &nbsp;(</div>
+          <div><span style="color:var(--terra);font-weight:500">67</span> &nbsp;)</div>
+          <div><span style="color:var(--terra);font-weight:500">68</span> &nbsp;/</div>
+          <div><span style="color:var(--terra);font-weight:500">69</span> &nbsp;%</div>
+          <div><span style="color:var(--terra);font-weight:500">70</span> &nbsp;=</div>
+          <div><span style="color:var(--terra);font-weight:500">71–80</span> &nbsp;0 – 9</div>
+          <div><span style="color:var(--terra);font-weight:500">81</span> &nbsp;↵ (Zeilenumbruch)</div>
+        </div>
+        <div style="margin-top:0.5rem;color:var(--ink-muted);font-size:0.63rem">
+          PHIOL-Sonderzeichen (<code>| : &lt; &gt; + - * ~ ! ? " ' @ ; °</code>) werden später mit Escape-Mechanismus ergänzt.
+        </div>
+      </div>
+
+      <div class="ref-note">
+        <strong>Kommentare:</strong> <code>( text )</code> — alles in runden Klammern wird ignoriert.<br>
+        <strong>Phiole definieren:</strong> <code>§name { code }</code> → direkt im Code definieren.<br>
+        <strong>Phiole aufrufen:</strong> <code>name</code> → direkter Aufruf per Name.<br>
+        <strong>Flag-Regel:</strong> <code>~</code> setzt Flag AN wenn Kammer danach leer. <code>*</code> <code>&lt;N</code> <code>&gt;N</code> <code>|</code> <code>!</code> setzen Flag AUS.<br>
+        <strong>IF mit Flag:</strong> <code>&lt;3 ~ ~ ~ &lt;° " ;</code> → gibt Wert aus wenn Kammer leer<br>
+        <strong>IF-ELSE:</strong> <code>&gt;1 &lt; | &gt;0 IF-CODE : &gt; | ELSE-CODE :</code><br>
+        <strong>Pointer:</strong> <code>+ &lt;25 - &lt;1L "</code> → speichert 25 auf L1, liest es zurück<br>
+        <strong>Addition:</strong> <code>&lt;5 &gt;3 | &lt;"</code> &nbsp;·&nbsp;
+        <strong>Subtraktion:</strong> <code>&gt;3 + &lt;10 - &gt; | &lt; + ~ - &gt; : + &lt;"</code>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Phiolen Panel -->
+  <div class="ref" style="margin-top:0.6rem">
+    <div class="ref-header" onclick="togglePhiolen()">
+      ⚗️ Phiolen
+      <span class="ref-toggle" id="phiolenToggle">▼ aufklappen</span>
+    </div>
+    <div id="phiolenBody" style="display:none; padding:0.8rem; background:var(--parch-dark);">
+
+      <div style="display:grid; grid-template-columns:1fr 2fr auto; gap:0.4rem; margin-bottom:0.6rem; align-items:start;">
+        <input id="phioleName" placeholder="Name (z.B. blink)"
+          style="font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.35rem 0.5rem;border:1px solid var(--sand-dark);background:var(--parchment);color:var(--terra);border-radius:2px;outline:none;">
+        <input id="phioleCode" placeholder="PHIOL Code (z.B. + &lt;0L # &lt;0L ^ &lt;1L d &lt;0L v &lt;1L d -)"
+          style="font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.35rem 0.5rem;border:1px solid var(--sand-dark);background:var(--parchment);color:var(--terra);border-radius:2px;outline:none;">
+        <div style="display:flex;gap:0.3rem;">
+          <button onclick="addPhiole()" style="font-family:'DM Mono',monospace;font-size:0.65rem;padding:0.35rem 0.6rem;border:1px solid var(--sand-dark);background:var(--terra);color:var(--sand-light);border-radius:2px;cursor:pointer;">+ Hinzufügen</button>
+          <button onclick="loadPhioleFile()" style="font-family:'DM Mono',monospace;font-size:0.65rem;padding:0.35rem 0.6rem;border:1px solid var(--sand-dark);background:var(--parch-dark);color:var(--ink);border-radius:2px;cursor:pointer;">📂 .phi laden</button>
+          <button onclick="savePhioleFile()" style="font-family:'DM Mono',monospace;font-size:0.65rem;padding:0.35rem 0.6rem;border:1px solid var(--sand-dark);background:var(--parch-dark);color:var(--ink);border-radius:2px;cursor:pointer;">💾 .phi speichern</button>
+          <button onclick="loadBibliothek()" style="font-family:'DM Mono',monospace;font-size:0.65rem;padding:0.35rem 0.6rem;border:1px solid var(--sand-dark);background:var(--parch-dark);color:var(--ink);border-radius:2px;cursor:pointer;">📚 Bibliothek laden</button>
+          <button onclick="saveBibliothek()" style="font-family:'DM Mono',monospace;font-size:0.65rem;padding:0.35rem 0.6rem;border:1px solid var(--sand-dark);background:var(--parch-dark);color:var(--ink);border-radius:2px;cursor:pointer;">💾 Bibliothek speichern</button>
+        </div>
+      </div>
+
+      <div id="phiolenList" style="display:flex;flex-wrap:wrap;gap:0.3rem;"></div>
+
+    </div>
+  </div>
+
+  <!-- Impressum & Datenschutz -->
+  <div class="ref" style="margin-top:0.6rem; margin-bottom:2rem;">
+    <div class="ref-header" onclick="toggleLegal()">
+      ⚖️ Impressum &amp; Datenschutz
+      <span class="ref-toggle" id="legalToggle">▼ aufklappen</span>
+    </div>
+    <div id="legalBody" style="display:none; background:var(--parch-dark);">
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; padding:1rem;">
+
+        <!-- Impressum -->
+        <div>
+          <h4 style="font-family:'Cinzel',serif; font-size:0.6rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--terra); margin-bottom:0.7rem; padding-bottom:0.3rem; border-bottom:1px solid var(--sand-dark);">Impressum</h4>
+          <div style="font-size:0.7rem; line-height:2; color:var(--ink-light);">
+            <p style="margin-bottom:0.5rem;"><strong style="color:var(--terra);">Angaben gemäß § 5 TMG</strong></p>
+            <p>Patrick Klingforth</p>
+            <p>Weilerstr. 80</p>
+            <p>46049 Oberhausen</p>
+            <p>Deutschland</p>
+            <p style="margin-top:0.7rem;"><strong style="color:var(--terra);">Kontakt</strong></p>
+            <p>E-Mail: p.klingforth@web.de<br>
+            <p style="margin-top:0.7rem;"><strong style="color:var(--terra);">Verantwortlich für den Inhalt</strong></p>
+            <p>Patrick Klingforth</p>
+            <p>Weilerstr. 80</p>
+            <p>46049 Oberhausen</p>
+            <p>Deutschland</p>
+
+            <p style="margin-top:0.7rem;"><strong style="color:var(--terra);">1. Haftung für Inhalte</strong></p>
+            <p>Als Diensteanbieter sind wir gemäß § 7 Abs.1 TMG für eigene Inhalte auf diesen Seiten 
+              nach den allgemeinen Gesetzen verantwortlich. Nach §§ 8 bis 10 TMG sind wir als Diensteanbieter jedoch nicht verpflichtet, 
+              übermittelte oder gespeicherte fremde Informationen zu überwachen oder nach 
+              Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen. </p>
+
+            <p style="margin-top:0.7rem;"><strong style="color:var(--terra);">2. Haftung für Links</strong></p>
+            <p> Unser Angebot enthält Links zu externen Websites Dritter, auf deren Inhalte wir keinen Einfluss haben. 
+              Deshalb können wir für diese fremden Inhalte auch keine Gewähr übernehmen. 
+              Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber der Seiten verantwortlich.</p>
+
+          </div>
+        </div>
+
+        <!-- Datenschutz -->
+        <div>
+          <h4 style="font-family:'Cinzel',serif; font-size:0.6rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--terra); margin-bottom:0.7rem; padding-bottom:0.3rem; border-bottom:1px solid var(--sand-dark);">Datenschutzerklärung</h4>
+          <div style="font-size:0.7rem; line-height:2; color:var(--ink-light);">
+            <p style="margin-bottom:0.5rem;"><strong style="color:var(--terra);">1. Datenschutz auf einen Blick</strong></p>
+            <p> Diese Website erhebt und verarbeitet keine personenbezogenen Daten. 
+              Es werden keine Cookies gesetzt, kein Tracking durchgeführt und keine Analyse-Tools eingesetzt. </p>
+
+            <p style="margin-top:0.7rem;"><strong style="color:var(--terra);">2. Verantwortliche Stelle</strong></p>
+            <p>Patrick Klingforth</p>
+            <p>Weilerstr. 80</p>
+            <p>46049 Oberhausen</p>
+            <p>Deutschland</p>
+            <p>E-Mail: p.klingforth@web.de<br>
+
+               <p style="margin-top:0.7rem;"><strong style="color:var(--terra);">3. Server-Logfiles</strong></p>
+            <p>Der Hosting-Anbieter dieser Website erhebt und speichert automatisch Informationen in Server-Logfiles, die Ihr Browser automatisch übermittelt. 
+              Dies sind IP-Adresse, Browsertyp, Betriebssystem, Referrer-URL, Datum und Uhrzeit der Anfrage. 
+              Eine Zusammenführung dieser Daten mit anderen Datenquellen wird nicht vorgenommen. </p>
+
+            <p style="margin-top:0.7rem;"><strong style="color:var(--terra);">4. Ihre Rechte</strong></p>
+            <p>Sie haben jederzeit das Recht auf Auskunft über Ihre gespeicherten personenbezogenen Daten, deren Herkunft und Empfänger sowie den Zweck der Datenverarbeitung. 
+              Wenden Sie sich dazu an die oben genannte E-Mail-Adresse. </p>
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div><!-- /wrapper -->
+
+<script>
+// ─── PHIOL Interpreter ────────────────────────────────────
+
+let MAX_LEVELS = 64;
+
+let grid, lvl, foc, outLines, flags, lastWasChar;
+// Step-Modus
+let stepToks = null, stepStack = null;
+
+function initState() {
+  grid = Array.from({length: MAX_LEVELS}, () => [0, 0]);
+  lvl = 0; foc = 0;
+  outLines = [];
+  lastWasChar = false;
+  stepToks = null;
+  stepStack = null;
+  flags = Array.from({length: MAX_LEVELS}, () => [false, false]);  // flags[ebene][seite]
+}
+initState();
+
+function hasColon(toks, i) {
+  let d = 0;
+  while (i < toks.length) {
+    if      (toks[i].t === 'PIPE') d++;
+    else if (toks[i].t === 'COL')  { if (!d) return true; else d--; }
+    i++;
+  }
+  return false;
+}
+
+function tokenize(src) {
+  const toks = []; let i = 0;
+  while (i < src.length) {
+    const c = src[i];
+    if (c==='<') {
+      i++; let n='';
+      while (i<src.length && src[i]>='0' && src[i]<='9') n+=src[i++];
+      if (src[i]==='°') {
+        // <° = prüfe linke Flag
+        toks.push({t:'FLAGCHECK', side:0}); i++;
+      } else if (n) {
+        if      (src[i]==='L') { toks.push({t:'FILL',side:0,ref:true,rl:0,amt:+n}); i++; }
+        else if (src[i]==='R') { toks.push({t:'FILL',side:0,ref:true,rl:1,amt:+n}); i++; }
+        else                   { toks.push({t:'FILL',side:0,ref:false,amt:+n}); }
+      } else { toks.push({t:'LEFT'}); }
+    } else if (c==='>') {
+      i++; let n='';
+      while (i<src.length && src[i]>='0' && src[i]<='9') n+=src[i++];
+      if (src[i]==='°') {
+        // >° = prüfe rechte Flag
+        toks.push({t:'FLAGCHECK', side:1}); i++;
+      } else if (n) {
+        if      (src[i]==='L') { toks.push({t:'FILL',side:1,ref:true,rl:0,amt:+n}); i++; }
+        else if (src[i]==='R') { toks.push({t:'FILL',side:1,ref:true,rl:1,amt:+n}); i++; }
+        else                   { toks.push({t:'FILL',side:1,ref:false,amt:+n}); }
+      } else { toks.push({t:'RIGHT'}); }
+    }
+    else if (c==='+') { toks.push({t:'UP'});    i++; }
+    else if (c==='-') { toks.push({t:'DOWN'});  i++; }
+    else if (c==='*') { toks.push({t:'DROP'});  i++; }
+    else if (c==='~') { toks.push({t:'REM'});   i++; }
+    else if (c==='!') { toks.push({t:'FLIP'});  i++; }
+    else if (c==='?') { toks.push({t:'DBG'});   i++; }
+    else if (c==='"') { toks.push({t:'PRINT'}); i++; }
+    else if (c==="'") { toks.push({t:'INPUT'}); i++; }
+    else if (c==='|') { toks.push({t:'PIPE'});  i++; }
+    else if (c===':') { toks.push({t:'COL'});   i++; }
+    else if (c===';') { toks.push({t:'SEMI'});  i++; }
+    else if (c==='#') { toks.push({t:'PRINTC'}); i++; }
+    // ── Kommentar: ( ... ) ──────────────────────────────
+    else if (c==='(') {
+      i++;
+      while (i<src.length && src[i]!==')') i++;
+      if (i<src.length) i++;
+    }
+    // ── Phiolen-Definition: §name { body } ──────────────
+    else if (c==='§') {
+      i++;  // § überspringen
+      while (i<src.length && src[i]===' ') i++;
+      let dname='';
+      while (i<src.length && /[a-zA-Z0-9_]/.test(src[i])) dname+=src[i++];
+      while (i<src.length && src[i]!=='{') i++;
+      if (src[i]==='{') i++;
+      let body='', depth=1;
+      while (i<src.length && depth>0) {
+        if      (src[i]==='{') depth++;
+        else if (src[i]==='}') { depth--; if(depth===0){i++;break;} }
+        if (depth>0) body+=src[i];
+        i++;
+      }
+      if (dname) toks.push({t:'PHIOLEDEF', name:dname, body:body.trim()});
+    }
+    // ── Phiolen-Aufruf: direkter Name ───────────────────
+    else if (/[a-zA-Z_]/.test(c)) {
+      let name='';
+      while (i<src.length && /[a-zA-Z0-9_]/.test(src[i])) name+=src[i++];
+      toks.push({t:'PHIOLE', name});
+    }
+    else if (c==='°') { i++; }
+    else i++;
+  }
+  return toks;
+}
+
+// ─── PHIOL ASCII Tabelle ──────────────────────────────────
+function phiolChar(n) {
+  if (n >= 10 && n <= 35) return String.fromCharCode(65 + (n - 10)); // A–Z
+  if (n >= 36 && n <= 61) return String.fromCharCode(97 + (n - 36)); // a–z
+  const extras = {62:' ',63:'.',64:',',65:'_',66:'(',67:')',68:'/',69:'%',70:'=',
+                  71:'0',72:'1',73:'2',74:'3',75:'4',76:'5',77:'6',78:'7',79:'8',80:'9',81:'\n'};
+  return extras[n] !== undefined ? extras[n] : `[?${n}]`;
+}
+
+// Vollständiger Executor (für Run)
+function exec(toks, pos) {
+  while (pos < toks.length) {
+    const t = toks[pos];
+    switch(t.t) {
+      case 'LEFT':  foc=0; pos++; break;
+      case 'RIGHT': foc=1; pos++; break;
+      case 'UP':    lvl=Math.min(lvl+1,MAX_LEVELS-1); pos++; break;
+      case 'DOWN':  lvl=Math.max(lvl-1,0); pos++; break;
+      case 'DROP':  grid[lvl][foc]++; flags[lvl][foc]=false; pos++; break;
+      case 'REM':
+        if (grid[lvl][foc] > 0) {
+          grid[lvl][foc]--;
+          flags[lvl][foc] = (grid[lvl][foc] === 0);
+        } else {
+          flags[lvl][foc] = true;  // schon leer → Flag AN
+        }
+        pos++; break;
+      case 'FILL':
+        grid[lvl][t.side] = t.ref ? grid[t.amt][t.rl] : t.amt;
+        flags[lvl][t.side] = false;  // Wert reinbekommen → Flag AUS
+        foc=t.side; pos++; break;
+      case 'FLIP': {
+        let tmp=grid[lvl][0]; grid[lvl][0]=grid[lvl][1]; grid[lvl][1]=tmp;
+        flags[lvl][0]=false; flags[lvl][1]=false;  // beide Seiten bekommen Wert
+        pos++; break;
+      }
+      case 'PRINT': outLines.push(String(grid[lvl][foc])); lastWasChar=false; pos++; break;
+      case 'PRINTC': {
+        const ch = phiolChar(grid[lvl][foc]);
+        if (ch === '\n') { outLines.push(''); lastWasChar=true; }
+        else if (lastWasChar && outLines.length) { outLines[outLines.length-1] += ch; }
+        else { outLines.push(ch); lastWasChar=true; }
+        pos++; break;
+      }
+      case 'FLAGCHECK': {
+        pos++;
+        if (flags[lvl][t.side]) {
+          flags[lvl][t.side] = false;
+          pos = exec(toks, pos);  // läuft bis SEMI
+        } else {
+          // Flag AUS → überspringe bis passendes ';'
+          let d=0;
+          while(pos<toks.length){
+            if(toks[pos].t==='FLAGCHECK') d++;
+            else if(toks[pos].t==='SEMI'){if(!d){pos++;break;}else d--;}
+            pos++;
+          }
+        }
+        break;
+      }
+      case 'SEMI': return pos+1;  // IF-Block Ende
+      case 'PHIOLEDEF': {
+        const PRIMS = '<>+-*~!|:"\'?;'.split('');
+        if (PRIMS.includes(t.name)) {
+          outLines.push(`[FEHLER] '${t.name}' ist ein Primitiv`);
+        } else {
+          phiolen[t.name] = t.body;
+          renderPhiolen();
+          outLines.push(`⚗️ §${t.name} definiert`);
+        }
+        pos++; break;
+      }
+      case 'PHIOLE': {
+        const code = phioleFind(t.name);
+        if (code !== null) {
+          exec(tokenize(code), 0);
+        } else {
+          outLines.push(`[FEHLER] Unbekanntes Wort: ${t.name}`);
+        }
+        pos++; break;
+      }
+      case 'INPUT': {
+        const val = window.prompt('PHIOL Eingabe – Zahl eingeben:');
+        const n = parseInt(val);
+        if (!isNaN(n)) grid[lvl][foc] = n;
+        outLines.push(`← Eingabe: ${isNaN(n)?0:n}`);
+        pos++; break;
+      }
+      case 'DBG': {
+        const lo=Math.max(lvl-1,0), hi=Math.min(lvl+1,MAX_LEVELS-1);
+        for(let i=lo;i<=hi;i++) {
+          const m=i===lvl?` ◀ fokus=${foc===0?'L':'R'}`:'';
+          outLines.push(`[L${i}] L=${grid[i][0]}  R=${grid[i][1]}${m}`);
+        }
+        pos++; break;
+      }
+      case 'PIPE': {
+        pos++;
+        if (hasColon(toks,pos)) {
+          const l=lvl, f=foc, bs=pos;
+          while (grid[l][f]>0) {
+            grid[l][f]--; grid[l][1-f]++;
+            flags[l][f] = (grid[l][f] === 0);  // Flag sofort setzen!
+            exec(toks,bs);
+          }
+          flags[l][f] = true;  // nach Schleife auch AN
+          // Springe hinter passendes ':'
+          let d=0, sp=bs;
+          while(sp<toks.length){
+            if(toks[sp].t==='PIPE') d++;
+            else if(toks[sp].t==='COL'){if(!d){pos=sp+1;break;}else d--;}
+            sp++;
+          }
+        } else {
+          const hadSand = grid[lvl][foc] > 0;
+          grid[lvl][1-foc] += grid[lvl][foc];
+          if (hadSand) flags[lvl][1-foc] = false;
+          grid[lvl][foc] = 0;
+          flags[lvl][foc] = true;  // Quelle leer → Flag AN!
+        }
+        break;
+      }
+      case 'COL': return pos+1;
+      default: pos++; break;
+    }
+  }
+  return pos;
+}
+
+// Step-Executor: führt ein Token aus, gibt neuen Index zurück
+function execOne(toks, pos) {
+  if (pos >= toks.length) return pos;
+  const t = toks[pos];
+  switch(t.t) {
+    case 'LEFT':  foc=0; return pos+1;
+    case 'RIGHT': foc=1; return pos+1;
+    case 'UP':    lvl=Math.min(lvl+1,MAX_LEVELS-1); return pos+1;
+    case 'DOWN':  lvl=Math.max(lvl-1,0); return pos+1;
+    case 'DROP':  grid[lvl][foc]++; flags[lvl][foc]=false; return pos+1;
+    case 'REM':
+      if (grid[lvl][foc]>0) {
+        grid[lvl][foc]--;
+        flags[lvl][foc] = (grid[lvl][foc] === 0);
+      } else {
+        flags[lvl][foc] = true;
+      }
+      return pos+1;
+    case 'FLAGCHECK': return exec(toks, pos+1);
+    case 'SEMI': return pos+1;
+    case 'PHIOLEDEF': {
+      const PRIMS = '<>+-*~!|:"\'?;'.split('');
+      if (PRIMS.includes(toks[pos].name)) {
+        outLines.push(`[FEHLER] '${toks[pos].name}' ist ein Primitiv`);
+      } else {
+        phiolen[toks[pos].name] = toks[pos].body;
+        renderPhiolen();
+        outLines.push(`⚗️ §${toks[pos].name} definiert`);
+      }
+      return pos+1;
+    }
+    case 'PHIOLE': {
+      const code = phioleFind(toks[pos].name);
+      if (code !== null) {
+        exec(tokenize(code), 0);
+      } else {
+        outLines.push(`[FEHLER] Unbekanntes Wort: ${toks[pos].name}`);
+      }
+      return pos+1;
+    }
+    case 'FILL':
+      grid[lvl][t.side] = t.ref ? grid[t.amt][t.rl] : t.amt;
+      flags[lvl][t.side]=false;
+      foc=t.side; return pos+1;
+    case 'FLIP': {
+      let tmp=grid[lvl][0]; grid[lvl][0]=grid[lvl][1]; grid[lvl][1]=tmp;
+      flags[lvl][0]=false; flags[lvl][1]=false;
+      return pos+1;
+    }
+    case 'PRINT': outLines.push(String(grid[lvl][foc])); lastWasChar=false; return pos+1;
+    case 'PRINTC': {
+      const ch = phiolChar(grid[lvl][foc]);
+      if (ch === '\n') { outLines.push(''); lastWasChar=true; }
+      else if (lastWasChar && outLines.length) { outLines[outLines.length-1] += ch; }
+      else { outLines.push(ch); lastWasChar=true; }
+      return pos+1;
+    }
+    case 'INPUT': {
+      const val = window.prompt('PHIOL Eingabe – Zahl eingeben:');
+      const n = parseInt(val);
+      if (!isNaN(n)) grid[lvl][foc] = n;
+      outLines.push(`← Eingabe: ${isNaN(n)?0:n}`);
+      return pos+1;
+    }
+    case 'DBG': {
+      const lo=Math.max(lvl-1,0),hi=Math.min(lvl+1,MAX_LEVELS-1);
+      for(let i=lo;i<=hi;i++){
+        const m=i===lvl?` ◀ fokus=${foc===0?'L':'R'}`:'';
+        outLines.push(`[L${i}] L=${grid[i][0]}  R=${grid[i][1]}${m}`);
+      }
+      return pos+1;
+    }
+    case 'PIPE': {
+      // Im Step-Modus: führe die gesamte Schleife auf einmal aus
+      return exec(toks, pos+1);
+    }
+    case 'COL': return pos+1;
+    default: return pos+1;
+  }
+}
+
+// ─── Phiolen System ──────────────────────────────────────
+
+let phiolen = {};
+
+// Standard Phiolen
+phiolen['add'] = '|';
+phiolen['clr'] = '<0 >0';
+
+function phioleFind(name) {
+  return phiolen[name] !== undefined ? phiolen[name] : null;
+}
+
+function phioleAdd(name, code) {
+  if (!name.trim() || !code.trim()) return false;
+  phiolen[name.trim()] = code.trim();
+  renderPhiolen();
+  return true;
+}
+
+function phioleDelete(name) {
+  delete phiolen[name];
+  renderPhiolen();
+}
+
+function renderPhiolen() {
+  const list = document.getElementById('phiolenList');
+  if (!list) return;
+  list.innerHTML = '';
+  Object.keys(phiolen).forEach(name => {
+    const div = document.createElement('div');
+    div.className = 'phiole-item';
+    div.innerHTML = `
+      <span class="phiole-name">§${name}</span>
+      <span class="phiole-code">${phiolen[name].substring(0,40)}${phiolen[name].length>40?'…':''}</span>
+      <button class="phiole-del" onclick="phioleDelete('${name}')">✕</button>
+    `;
+    div.onclick = (e) => {
+      if (e.target.classList.contains('phiole-del')) return;
+      document.getElementById('phioleName').value = name;
+      document.getElementById('phioleCode').value = phiolen[name];
+    };
+    list.appendChild(div);
+  });
+}
+
+function addPhiole() {
+  const name = document.getElementById('phioleName').value.trim();
+  const code = document.getElementById('phioleCode').value.trim();
+  if (!name || !code) { alert('Name und Code eingeben!'); return; }
+  phioleAdd(name, code);
+  document.getElementById('phioleName').value = '';
+  document.getElementById('phioleCode').value = '';
+}
+
+function savePhioleFile() {
+  const name = document.getElementById('phioleName').value.trim();
+  const code = document.getElementById('phioleCode').value.trim();
+  if (!name || !code) {
+    alert('Bitte Name und Code eingeben!');
+    return;
+  }
+  const blob = new Blob([code], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name + '.phi';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function loadPhioleFile() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.phi,.fx,.txt';
+  input.multiple = true;
+  input.onchange = (e) => {
+    Array.from(e.target.files).forEach(file => {
+      const name = file.name.replace(/\.(phi|fx|txt)$/, '');
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        phioleAdd(name, ev.target.result);
+      };
+      reader.readAsText(file);
+    });
+  };
+  input.click();
+}
+
+// ─── Bibliothek: alle Phiolen in einer Datei ──────────────
+
+function saveBibliothek() {
+  const lines = Object.keys(phiolen).map(name =>
+    `§${name} { ${phiolen[name]} }`
+  );
+  const blob = new Blob([lines.join('\n') + '\n'], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'phiolen.phi';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function loadBibliothek() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.phi,.fx,.txt';
+  input.onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const src = ev.target.result;
+      const toks = tokenize(src);
+      execPhiolenOnly(toks);
+      outLines.push(`📚 Bibliothek geladen: ${Object.keys(phiolen).length} Phiole(n)`);
+      renderPhiolen();
+      renderOut();
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// Führt nur PHIOLEDEF-Tokens aus (kein State-Reset)
+function execPhiolenOnly(toks) {
+  for (const t of toks) {
+    if (t.t === 'PHIOLEDEF') {
+      phiolen[t.name] = t.body;
+    }
+  }
+}
+
+function togglePhiolen() {
+  const body = document.getElementById('phiolenBody');
+  const tog  = document.getElementById('phiolenToggle');
+  if (body.style.display === 'none') {
+    body.style.display = 'block';
+    tog.textContent = '▲ zuklappen';
+  } else {
+    body.style.display = 'none';
+    tog.textContent = '▼ aufklappen';
+  }
+}
+
+function fillPct(val) {
+  if (val<=0) return 0;
+  return Math.min(Math.log10(val+1)/Math.log10(101)*100, 100);
+}
+
+function renderViz() {
+  const viz = document.getElementById('viz');
+  let maxUsed=3;
+  for(let i=MAX_LEVELS-1;i>=0;i--){
+    if(grid[i][0]||grid[i][1]){maxUsed=Math.max(i+2,3);break;}
+  }
+  maxUsed=Math.min(Math.max(maxUsed,lvl+2,5), MAX_LEVELS);  // nie über MAX_LEVELS hinaus
+
+  let html='';
+  for(let i=maxUsed-1;i>=0;i--){
+    const active=i===lvl;
+    const lv=grid[i][0],rv=grid[i][1];
+    const lp=fillPct(lv),rp=fillPct(rv);
+    const lf=active&&foc===0?'foc-l':'';
+    const rf=active&&foc===1?'foc-r':'';
+    const arrow=active?(foc===0?'◀':'▶'):'';
+    html+=`<div class="level-row ${active?'active':''}">
+      <div class="lvl-num">L${i}</div>
+      <div class="chamber ${lf}">
+        <div class="ch-fill" style="width:${lp}%"></div>
+        <div class="ch-val">${lv}</div>
+        <div class="ch-tag">L</div>
+      </div>
+      <div></div>
+      <div class="chamber ${rf}">
+        <div class="ch-fill" style="width:${rp}%"></div>
+        <div class="ch-val">${rv}</div>
+        <div class="ch-tag">R</div>
+      </div>
+      <div class="foc-ind">${arrow}</div>
+    </div>`;
+  }
+  viz.innerHTML=html;
+
+  document.getElementById('stLvl').textContent=lvl;
+  document.getElementById('stFoc').textContent=foc===0?'Links':'Rechts';
+  document.getElementById('stL').textContent=grid[lvl][0];
+  document.getElementById('stR').textContent=grid[lvl][1];
+  document.getElementById('hdrInfo').textContent=`L${lvl} · ${foc===0?'Links':'Rechts'}`;
+  document.getElementById('flagL').textContent=flags[lvl][0]?'☀️':'🌑';
+  document.getElementById('flagR').textContent=flags[lvl][1]?'☀️':'🌑';
+}
+
+function renderOut() {
+  const box=document.getElementById('output');
+  box.innerHTML=outLines.map(l=>
+    `<div class="out-line ${l.startsWith('FEHLER')?'err':''}">${l}</div>`
+  ).join('');
+  box.scrollTop=box.scrollHeight;
+}
+
+// ─── Controls ─────────────────────────────────────────────
+
+function setStatus(txt,run=false) {
+  document.getElementById('stText').textContent=txt;
+  document.getElementById('stDot').className='st-dot'+(run?' run':'');
+}
+
+function runCode() {
+  // Step-Modus beenden falls aktiv
+  stepToks=null;
+  document.getElementById('stepBtn').classList.remove('active');
+  document.getElementById('stepInfo').textContent='Ctrl+Enter = Run';
+  document.getElementById('editor').classList.remove('stepping');
+
+  initState();
+  setStatus('läuft...',true);
+  try {
+    exec(tokenize(document.getElementById('editor').value),0);
+    setStatus('fertig ✓');
+  } catch(e) {
+    outLines.push('FEHLER: '+e.message);
+    setStatus('fehler ✗');
+  }
+  renderViz(); renderOut();
+}
+
+let stepPos=0;
+function stepCode() {
+  const btn=document.getElementById('stepBtn');
+  const ed=document.getElementById('editor');
+
+  if (!stepToks) {
+    // Step-Modus starten
+    initState();
+    stepToks=tokenize(ed.value);
+    stepPos=0;
+    btn.classList.add('active');
+    ed.classList.add('stepping');
+    setStatus('schritt 1 von '+stepToks.length);
+    renderViz(); renderOut();
+    return;
+  }
+
+  if (stepPos >= stepToks.length) {
+    setStatus('fertig ✓');
+    stepToks=null;
+    btn.classList.remove('active');
+    ed.classList.remove('stepping');
+    document.getElementById('stepInfo').textContent='Ctrl+Enter = Run';
+    return;
+  }
+
+  stepPos=execOne(stepToks, stepPos);
+  const remaining=stepToks.length-stepPos;
+  if (remaining<=0) {
+    setStatus('fertig ✓');
+    document.getElementById('stepInfo').textContent='fertig!';
+  } else {
+    setStatus(`schritt ${stepPos} von ${stepToks.length}`);
+    document.getElementById('stepInfo').textContent=`token ${stepPos}/${stepToks.length}`;
+  }
+  renderViz(); renderOut();
+}
+
+function resetState() {
+  initState(); stepToks=null;
+  document.getElementById('stepBtn').classList.remove('active');
+  document.getElementById('editor').classList.remove('stepping');
+  document.getElementById('stepInfo').textContent='Ctrl+Enter = Run';
+  setStatus('bereit');
+  renderViz();
+  document.getElementById('output').innerHTML='';
+}
+
+// ─── Beispiele ─────────────────────────────────────────────
+
+const examples = {
+  add: `Addition: 5 + 3 = 8\n<5 >3 | <"`,
+  sub: `Subtraktion: 10 - 3 = 7\n>3 + <10 - > | < + ~ - > : + <"`,
+  mul: `Multiplikation: 6 x 8 = 48\n<6 + <8 - | + | + * - : ! - : + ?`,
+  if:  `IF-ELSE: wenn links Sand, dann L1 sonst L2\n\n<5\n>1 < | >0 + * - : > | + + * - - :`,
+  ptr: `Pointer - Variablen:\nSpeichere 3 Werte und lese sie wieder\n\n+ <25\n+ <42\n+ <99\n- - -\n<1L "\n<2L "\n<3L "`,
+  flag: `Flag System Test:\n~ setzt Flag wenn Kammer leer\n<° CODE ; fuehrt aus wenn Flag AN\n\n<3 ~ ~ ~ <° " ;`,
+};
+
+function loadEx(name) {
+  resetState();
+  document.getElementById('editor').value=examples[name]||'';
+}
+
+function setLevels(val) {
+  MAX_LEVELS = parseInt(val);
+  resetState();
+}
+
+// ─── Syntax Referenz Toggle ────────────────────────────────
+
+let refOpen=false;
+function toggleRef() {
+  refOpen=!refOpen;
+  document.getElementById('refBody').classList.toggle('open',refOpen);
+  document.getElementById('refToggle').textContent=refOpen?'▲ zuklappen':'▼ aufklappen';
+}
+
+// Keyboard
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();runCode();}
+});
+
+
+function toggleLegal() {
+  const body = document.getElementById('legalBody');
+  const tog  = document.getElementById('legalToggle');
+  if (body.style.display === 'none') {
+    body.style.display = 'block';
+    tog.textContent = '▲ zuklappen';
+  } else {
+    body.style.display = 'none';
+    tog.textContent = '▼ aufklappen';
+  }
+}
+
+// ─── Night Mode & Sterne ──────────────────────────────────
+
+let starsAnimId = null;
+
+function initStars() {
+  const canvas = document.getElementById('starCanvas');
+  const ctx = canvas.getContext('2d');
+  let stars = [];
+  let W, H;
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Sterne erzeugen
+  for (let i = 0; i < 220; i++) {
+    stars.push({
+      x: Math.random(),
+      y: Math.random(),
+      r: Math.random() * 1.4 + 0.3,
+      a: Math.random(),          // aktuelle Helligkeit
+      speed: 0.003 + Math.random() * 0.008,
+      offset: Math.random() * Math.PI * 2,
+      color: Math.random() > 0.85
+        ? `rgba(200,180,255,`     // leicht bläulich
+        : `rgba(255,245,210,`     // warm weiß
+    });
+  }
+
+  function draw(t) {
+    ctx.clearRect(0, 0, W, H);
+    stars.forEach(s => {
+      const alpha = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(t * s.speed + s.offset));
+      ctx.beginPath();
+      ctx.arc(s.x * W, s.y * H, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = s.color + alpha.toFixed(2) + ')';
+      ctx.fill();
+    });
+    starsAnimId = requestAnimationFrame(draw);
+  }
+  starsAnimId = requestAnimationFrame(draw);
+}
+
+function toggleNight() {
+  const isNight = document.body.classList.toggle('night');
+  document.getElementById('nightBtn').textContent = isNight ? '☀️ Tagmodus' : '🌙 Nachtmodus';
+  if (isNight && !starsAnimId) {
+    initStars();
+  } else if (!isNight && starsAnimId) {
+    cancelAnimationFrame(starsAnimId);
+    starsAnimId = null;
+    const ctx = document.getElementById('starCanvas').getContext('2d');
+    ctx.clearRect(0, 0, 9999, 9999);
+  }
+}
+
+renderViz();
+renderPhiolen();
+</script>
+</body>
+</html>
