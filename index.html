@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PHIOL Playground</title>
+<title>FLUX Playground</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -331,7 +331,7 @@ body.night .night-toggle {
 <header>
   <div class="wrapper">
     <div>
-      <div class="logo">PHIOL</div>
+      <div class="logo">FLUX</div>
       <div class="logo-sub">Logik in Bewegung · Playground</div>
     </div>
     <div style="display:flex;align-items:flex-end;gap:1rem;">
@@ -374,7 +374,7 @@ body.night .night-toggle {
           <span id="stepInfo">Ctrl+Enter = Run</span>
         </div>
         <textarea id="editor" spellcheck="false"
-          placeholder="Phiol Code hier eingeben...
+          placeholder="FLUX Code hier eingeben...
 
 Beispiel:
 &lt;5 &gt;3 | &lt;&quot;"></textarea>
@@ -446,7 +446,7 @@ Beispiel:
         <h4>Ein- & Ausgabe</h4>
         <table class="ref-table">
           <tr><td>"</td><td>Fokus-Wert ausgeben (Zahl)</td></tr>
-          <tr><td>#</td><td>Fokus-Wert als Zeichen ausgeben (Phiol ASCII)</td></tr>
+          <tr><td>#</td><td>Fokus-Wert als Zeichen ausgeben (FLUX ASCII)</td></tr>
           <tr><td>'</td><td>Zahl einlesen (öffnet Eingabefenster)</td></tr>
           <tr><td>?</td><td>Debug: 3 Ebenen anzeigen</td></tr>
           <tr><td>~</td><td>Korn entfernen – Flag AN wenn Kammer danach leer</td></tr>
@@ -457,7 +457,7 @@ Beispiel:
       </div>
 
       <div class="ref-section" style="grid-column:1/-1">
-        <h4>Phiol ASCII – <code>#</code> Zeichen ausgeben</h4>
+        <h4>FLUX ASCII – <code>#</code> Zeichen ausgeben</h4>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:0.4rem 1.2rem;font-size:0.65rem;line-height:2;">
           <div><span style="color:var(--terra);font-weight:500">10–35</span> &nbsp;A – Z</div>
           <div><span style="color:var(--terra);font-weight:500">36–61</span> &nbsp;a – z</div>
@@ -474,13 +474,12 @@ Beispiel:
           <div><span style="color:var(--terra);font-weight:500">81</span> &nbsp;↵ (Zeilenumbruch)</div>
         </div>
         <div style="margin-top:0.5rem;color:var(--ink-muted);font-size:0.63rem">
-          Phiol-Symbole: <code>| : &lt; &gt; + - * ~ ! ? " ' § ; °</code> — Kommentare mit <code>( )</code>.
+          FLUX-Sonderzeichen (<code>| : &lt; &gt; + - * ~ ! ? " ' @ ; °</code>) werden später mit Escape-Mechanismus ergänzt.
         </div>
       </div>
 
       <div class="ref-note">
-        <strong>Kommentare:</strong> <code>( text )</code> — alles in runden Klammern wird ignoriert.<br>
-        <strong>Phiole definieren:</strong> <code>§name { Phiol code }</code> → zur Laufzeit registrieren, dann direkt per <code>name</code> aufrufen.<br>
+        <strong>Kommentare:</strong> Alles was kein FLUX-Symbol ist wird ignoriert.<br>
         <strong>Flag-Regel:</strong> <code>~</code> setzt Flag AN wenn Kammer danach leer. <code>*</code> <code>&lt;N</code> <code>&gt;N</code> <code>|</code> <code>!</code> setzen Flag AUS.<br>
         <strong>IF mit Flag:</strong> <code>&lt;3 ~ ~ ~ &lt;° " ;</code> → gibt Wert aus wenn Kammer leer<br>
         <strong>IF-ELSE:</strong> <code>&gt;1 &lt; | &gt;0 IF-CODE : &gt; | ELSE-CODE :</code><br>
@@ -503,12 +502,12 @@ Beispiel:
       <div style="display:grid; grid-template-columns:1fr 2fr auto; gap:0.4rem; margin-bottom:0.6rem; align-items:start;">
         <input id="phioleName" placeholder="Name (z.B. blink)"
           style="font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.35rem 0.5rem;border:1px solid var(--sand-dark);background:var(--parchment);color:var(--terra);border-radius:2px;outline:none;">
-        <input id="phioleCode" placeholder="Phiol Code (z.B. §add { | } oder §clr { &lt;0 &gt;0 })"
+        <input id="phioleCode" placeholder="FLUX Code (z.B. + &lt;0L # &lt;0L ^ &lt;1L d &lt;0L v &lt;1L d -)"
           style="font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.35rem 0.5rem;border:1px solid var(--sand-dark);background:var(--parchment);color:var(--terra);border-radius:2px;outline:none;">
         <div style="display:flex;gap:0.3rem;">
           <button onclick="addPhiole()" style="font-family:'DM Mono',monospace;font-size:0.65rem;padding:0.35rem 0.6rem;border:1px solid var(--sand-dark);background:var(--terra);color:var(--sand-light);border-radius:2px;cursor:pointer;">+ Hinzufügen</button>
-          <button onclick="loadPhioleFile()" style="font-family:'DM Mono',monospace;font-size:0.65rem;padding:0.35rem 0.6rem;border:1px solid var(--sand-dark);background:var(--parch-dark);color:var(--ink);border-radius:2px;cursor:pointer;">📂 .phi laden</button>
-          <button onclick="savePhioleFile()" style="font-family:'DM Mono',monospace;font-size:0.65rem;padding:0.35rem 0.6rem;border:1px solid var(--sand-dark);background:var(--parch-dark);color:var(--ink);border-radius:2px;cursor:pointer;">💾 .phi speichern</button>
+          <button onclick="loadPhioleFile()" style="font-family:'DM Mono',monospace;font-size:0.65rem;padding:0.35rem 0.6rem;border:1px solid var(--sand-dark);background:var(--parch-dark);color:var(--ink);border-radius:2px;cursor:pointer;">📂 .fx laden</button>
+          <button onclick="savePhioleFile()" style="font-family:'DM Mono',monospace;font-size:0.65rem;padding:0.35rem 0.6rem;border:1px solid var(--sand-dark);background:var(--parch-dark);color:var(--ink);border-radius:2px;cursor:pointer;">💾 .fx speichern</button>
         </div>
       </div>
 
@@ -592,7 +591,7 @@ Beispiel:
 </div><!-- /wrapper -->
 
 <script>
-// ─── Phiol Interpreter ────────────────────────────────────
+// ─── FLUX Interpreter ────────────────────────────────────
 
 let MAX_LEVELS = 64;
 
@@ -660,34 +659,11 @@ function tokenize(src) {
     else if (c===':') { toks.push({t:'COL'});   i++; }
     else if (c===';') { toks.push({t:'SEMI'});  i++; }
     else if (c==='#') { toks.push({t:'PRINTC'}); i++; }
-    // ── Kommentar: ( ... ) ──────────────────────────────
-    else if (c==='(') {
+    else if (c==='@') {
       i++;
-      while (i<src.length && src[i]!==')') i++;
-      i++;
-    }
-    // ── Phiolen-Definition: §name { body } ──────────────
-    else if (c==='§') {
-      i++;
-      while (i<src.length && /\s/.test(src[i])) i++;
-      let dname='';
-      while (i<src.length && /[a-zA-Z0-9_]/.test(src[i])) dname+=src[i++];
-      while (i<src.length && src[i]!=='{') i++;
-      if (src[i]==='{') i++;
-      let body='', depth=1;
-      while (i<src.length && depth>0) {
-        if      (src[i]==='{') depth++;
-        else if (src[i]==='}') { depth--; if(depth===0){i++;break;} }
-        if (depth>0) body+=src[i];
-        i++;
-      }
-      if (dname) toks.push({t:'PHIOLEDEF', name:dname, body:body.trim()});
-    }
-    // ── Phiolen-Aufruf: direkter Name ───────────────────
-    else if (/[a-zA-Z_]/.test(c)) {
       let name='';
       while (i<src.length && /[a-zA-Z0-9_]/.test(src[i])) name+=src[i++];
-      toks.push({t:'PHIOLE', name});
+      if (name) toks.push({t:'PHIOLE', name});
     }
     else if (c==='°') { i++; }
     else i++;
@@ -695,8 +671,8 @@ function tokenize(src) {
   return toks;
 }
 
-// ─── Phiol ASCII Tabelle ──────────────────────────────────
-function PhiolChar(n) {
+// ─── FLUX ASCII Tabelle ──────────────────────────────────
+function fluxChar(n) {
   if (n >= 10 && n <= 35) return String.fromCharCode(65 + (n - 10)); // A–Z
   if (n >= 36 && n <= 61) return String.fromCharCode(97 + (n - 36)); // a–z
   const extras = {62:' ',63:'.',64:',',65:'_',66:'(',67:')',68:'/',69:'%',70:'=',
@@ -733,7 +709,7 @@ function exec(toks, pos) {
       }
       case 'PRINT': outLines.push(String(grid[lvl][foc])); lastWasChar=false; pos++; break;
       case 'PRINTC': {
-        const ch = PhiolChar(grid[lvl][foc]);
+        const ch = fluxChar(grid[lvl][foc]);
         if (ch === '\n') { outLines.push(''); lastWasChar=true; }
         else if (lastWasChar && outLines.length) { outLines[outLines.length-1] += ch; }
         else { outLines.push(ch); lastWasChar=true; }
@@ -756,28 +732,17 @@ function exec(toks, pos) {
         break;
       }
       case 'SEMI': return pos+1;  // IF-Block Ende
-      case 'PHIOLEDEF': {
-        const PRIMITIVES = ['<','>','+','-','*','~','!','|',':','"','#',"'",'?',';','§'];
-        if (PRIMITIVES.includes(t.name)) {
-          outLines.push(`[FEHLER] '${t.name}' ist ein Primitiv und kann nicht überschrieben werden`);
-        } else {
-          phiolen[t.name] = t.body;
-          renderPhiolen();
-          outLines.push(`⚗️ §${t.name} definiert`);
-        }
-        pos++; break;
-      }
       case 'PHIOLE': {
         const code = phioleFind(t.name);
         if (code !== null) {
           exec(tokenize(code), 0);
         } else {
-          outLines.push(`[FEHLER] Unbekanntes Wort: ${t.name}`);
+          outLines.push(`[FEHLER] Phiole nicht gefunden: @${t.name}`);
         }
         pos++; break;
       }
       case 'INPUT': {
-        const val = window.prompt('Phiol Eingabe – Zahl eingeben:');
+        const val = window.prompt('FLUX Eingabe – Zahl eingeben:');
         const n = parseInt(val);
         if (!isNaN(n)) grid[lvl][foc] = n;
         outLines.push(`← Eingabe: ${isNaN(n)?0:n}`);
@@ -844,23 +809,12 @@ function execOne(toks, pos) {
       return pos+1;
     case 'FLAGCHECK': return exec(toks, pos+1);
     case 'SEMI': return pos+1;
-    case 'PHIOLEDEF': {
-      const PRIMITIVES = ['<','>','+','-','*','~','!','|',':','"','#',"'",'?',';','§'];
-      if (PRIMITIVES.includes(toks[pos].name)) {
-        outLines.push(`[FEHLER] '${toks[pos].name}' ist ein Primitiv`);
-      } else {
-        phiolen[toks[pos].name] = toks[pos].body;
-        renderPhiolen();
-        outLines.push(`⚗️ §${toks[pos].name} definiert`);
-      }
-      return pos+1;
-    }
     case 'PHIOLE': {
       const code = phioleFind(toks[pos].name);
       if (code !== null) {
         exec(tokenize(code), 0);
       } else {
-        outLines.push(`[FEHLER] Unbekanntes Wort: ${toks[pos].name}`);
+        outLines.push(`[FEHLER] Phiole nicht gefunden: @${toks[pos].name}`);
       }
       return pos+1;
     }
@@ -875,14 +829,14 @@ function execOne(toks, pos) {
     }
     case 'PRINT': outLines.push(String(grid[lvl][foc])); lastWasChar=false; return pos+1;
     case 'PRINTC': {
-      const ch = PhiolChar(grid[lvl][foc]);
+      const ch = fluxChar(grid[lvl][foc]);
       if (ch === '\n') { outLines.push(''); lastWasChar=true; }
       else if (lastWasChar && outLines.length) { outLines[outLines.length-1] += ch; }
       else { outLines.push(ch); lastWasChar=true; }
       return pos+1;
     }
     case 'INPUT': {
-      const val = window.prompt('Phiol Eingabe – Zahl eingeben:');
+      const val = window.prompt('FLUX Eingabe – Zahl eingeben:');
       const n = parseInt(val);
       if (!isNaN(n)) grid[lvl][foc] = n;
       outLines.push(`← Eingabe: ${isNaN(n)?0:n}`);
@@ -937,7 +891,7 @@ function renderPhiolen() {
     const div = document.createElement('div');
     div.className = 'phiole-item';
     div.innerHTML = `
-      <span class="phiole-name">§${name}</span>
+      <span class="phiole-name">@${name}</span>
       <span class="phiole-code">${phiolen[name].substring(0,40)}${phiolen[name].length>40?'…':''}</span>
       <button class="phiole-del" onclick="phioleDelete('${name}')">✕</button>
     `;
@@ -969,7 +923,7 @@ function savePhioleFile() {
   const blob = new Blob([code], { type: 'text/plain' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = name + '.phi';
+  a.download = name + '.fx';
   a.click();
   URL.revokeObjectURL(a.href);
 }
@@ -977,11 +931,11 @@ function savePhioleFile() {
 function loadPhioleFile() {
   const input = document.createElement('input');
   input.type = 'file';
-  input.accept = '.phi,.txt';
+  input.accept = '.fx,.txt';
   input.multiple = true;
   input.onchange = (e) => {
     Array.from(e.target.files).forEach(file => {
-      const name = file.name.replace(/\.(phi|txt)$/, '');
+      const name = file.name.replace(/\.(fx|txt)$/, '');
       const reader = new FileReader();
       reader.onload = (ev) => {
         phioleAdd(name, ev.target.result);
@@ -1015,7 +969,7 @@ function renderViz() {
   for(let i=MAX_LEVELS-1;i>=0;i--){
     if(grid[i][0]||grid[i][1]){maxUsed=Math.max(i+2,3);break;}
   }
-  maxUsed=Math.max(maxUsed,lvl+2,5);  // immer mindestens 5 Ebenen zeigen
+  maxUsed=Math.min(Math.max(maxUsed,lvl+2,5), MAX_LEVELS);  // nie über MAX_LEVELS hinaus
 
   let html='';
   for(let i=maxUsed-1;i>=0;i--){
