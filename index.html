@@ -508,8 +508,10 @@ Beispiel:
           style="font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.35rem 0.5rem;border:1px solid var(--sand-dark);background:var(--parchment);color:var(--terra);border-radius:2px;outline:none;">
         <div style="display:flex;gap:0.3rem;">
           <button onclick="addPhiole()" style="font-family:'DM Mono',monospace;font-size:0.65rem;padding:0.35rem 0.6rem;border:1px solid var(--sand-dark);background:var(--terra);color:var(--sand-light);border-radius:2px;cursor:pointer;">+ Hinzufügen</button>
-          <button onclick="loadPhioleFile()" style="font-family:'DM Mono',monospace;font-size:0.65rem;padding:0.35rem 0.6rem;border:1px solid var(--sand-dark);background:var(--parch-dark);color:var(--ink);border-radius:2px;cursor:pointer;">📂 .fx laden</button>
-          <button onclick="savePhioleFile()" style="font-family:'DM Mono',monospace;font-size:0.65rem;padding:0.35rem 0.6rem;border:1px solid var(--sand-dark);background:var(--parch-dark);color:var(--ink);border-radius:2px;cursor:pointer;">💾 .fx speichern</button>
+          <button onclick="loadPhioleFile()" style="font-family:'DM Mono',monospace;font-size:0.65rem;padding:0.35rem 0.6rem;border:1px solid var(--sand-dark);background:var(--parch-dark);color:var(--ink);border-radius:2px;cursor:pointer;">📂 .phi laden</button>
+          <button onclick="savePhioleFile()" style="font-family:'DM Mono',monospace;font-size:0.65rem;padding:0.35rem 0.6rem;border:1px solid var(--sand-dark);background:var(--parch-dark);color:var(--ink);border-radius:2px;cursor:pointer;">💾 .phi speichern</button>
+          <button onclick="loadBibliothek()" style="font-family:'DM Mono',monospace;font-size:0.65rem;padding:0.35rem 0.6rem;border:1px solid var(--sand-dark);background:var(--parch-dark);color:var(--ink);border-radius:2px;cursor:pointer;">📚 Bibliothek laden</button>
+          <button onclick="saveBibliothek()" style="font-family:'DM Mono',monospace;font-size:0.65rem;padding:0.35rem 0.6rem;border:1px solid var(--sand-dark);background:var(--parch-dark);color:var(--ink);border-radius:2px;cursor:pointer;">💾 Bibliothek speichern</button>
         </div>
       </div>
 
@@ -970,7 +972,7 @@ function savePhioleFile() {
   const blob = new Blob([code], { type: 'text/plain' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = name + '.fx';
+  a.download = name + '.phi';
   a.click();
   URL.revokeObjectURL(a.href);
 }
@@ -978,11 +980,11 @@ function savePhioleFile() {
 function loadPhioleFile() {
   const input = document.createElement('input');
   input.type = 'file';
-  input.accept = '.fx,.txt';
+  input.accept = '.phi,.fx,.txt';
   input.multiple = true;
   input.onchange = (e) => {
     Array.from(e.target.files).forEach(file => {
-      const name = file.name.replace(/\.(fx|txt)$/, '');
+      const name = file.name.replace(/\.(phi|fx|txt)$/, '');
       const reader = new FileReader();
       reader.onload = (ev) => {
         phioleAdd(name, ev.target.result);
@@ -991,6 +993,50 @@ function loadPhioleFile() {
     });
   };
   input.click();
+}
+
+// ─── Bibliothek: alle Phiolen in einer Datei ──────────────
+
+function saveBibliothek() {
+  const lines = Object.keys(phiolen).map(name =>
+    `§${name} { ${phiolen[name]} }`
+  );
+  const blob = new Blob([lines.join('\n') + '\n'], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'phiolen.phi';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function loadBibliothek() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.phi,.fx,.txt';
+  input.onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const src = ev.target.result;
+      const toks = tokenize(src);
+      execPhiolenOnly(toks);
+      outLines.push(`📚 Bibliothek geladen: ${Object.keys(phiolen).length} Phiole(n)`);
+      renderPhiolen();
+      renderOut();
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// Führt nur PHIOLEDEF-Tokens aus (kein State-Reset)
+function execPhiolenOnly(toks) {
+  for (const t of toks) {
+    if (t.t === 'PHIOLEDEF') {
+      phiolen[t.name] = t.body;
+    }
+  }
 }
 
 function togglePhiolen() {
