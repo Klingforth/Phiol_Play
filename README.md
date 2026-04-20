@@ -2,7 +2,7 @@
 
 > **Probiere Phiol direkt im Browser aus – kein Download nötig!**
 
-🌐 **[Playground öffnen](https://klingforth.github.io/Phiol_Playground/)**
+🌐 **[Playground öffnen]([https://klingforth.github.io/Phiol_Playground](https://klingforth.github.io/Phiol_Play/)/)**
 
 ---
 
