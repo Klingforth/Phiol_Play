@@ -16,14 +16,14 @@ Der Phiol Playground ist ein vollständiger Phiol Interpreter der direkt im Brow
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  ▶ Run  → Step  ↺ Reset  |  Beispiele  |  Ebenen: [64▼]    │
+│  ▶ Run  → Step  ↺ Reset  |  Beispiele  |                   │
 ├───────────────────────────┬─────────────────────────────────┤
 │  CODE              Ctrl+Enter = Run                         │
 │                           │  GLASS GRID          L0 · Links │
 │  <5 >3 | <"               │                                 │
-│                           │  L3  [ 0  |  0  ]              │
-│                           │  L2  [ 0  |  0  ]              │
-│  OUTPUT                   │  L1  [ 0  |  0  ]              │
+│                           │  L3  [ 0  |  0  ]               │
+│                           │  L2  [ 0  |  0  ]               │
+│  OUTPUT                   │  L1  [ 0  |  0  ]               │
 │  8                        │  L0  [██5 |  0  ] ◀            │
 ├───────────────────────────┴─────────────────────────────────┤
 │  ● bereit  Ebene: 0  Fokus: Links  Links: 5  Flag L: 🌑     │
@@ -43,20 +43,6 @@ Der Phiol Playground ist ein vollständiger Phiol Interpreter der direkt im Brow
 | ▶ Run | `Ctrl+Enter` | Kompletten Code ausführen |
 | → Step | – | Code Schritt für Schritt ausführen |
 | ↺ Reset | – | Zustand zurücksetzen |
-
----
-
-## Ebenen einstellen
-
-Oben rechts kann die Anzahl der Ebenen gewählt werden:
-
-| Einstellung | Beschreibung |
-|-------------|--------------|
-| 16 | Minimal – für einfache Programme |
-| 32 | Klein |
-| **64** | **Standard** |
-| 128 | Groß |
-| 300 | Volle Phiol Spezifikation |
 
 ---
 
